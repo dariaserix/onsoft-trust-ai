@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 from typing import List, Optional
 
 from .docs import Package
-from .textutil import norm, numbers, numbers_in
+from .textutil import norm, numbers, numbers_in, words_to_digits
 
 STATUSES = ("ответ", "расхождение", "нет в документах", "не знаю")
 
@@ -231,7 +231,7 @@ def calc_operands(expr: str):
     return numbers(e)
 
 
-CLAUSE_RE = re.compile(r"^\s*\d+(\.\d+)*\.?\s+")
+CLAUSE_RE = re.compile(r"^\s*\d+(\.\d+)*\.?\s+(?!\|)")  # «3 | Приёмка» — ячейка таблицы, а не номер пункта
 
 # Единица из вопроса → как она пишется в документе рядом с числом
 UNITS = [
@@ -249,7 +249,7 @@ def strip_clause(text: str) -> str:
 
 
 def number_has_unit(text: str, value: float, unit_re: str, window=32) -> bool:
-    t = strip_clause(text)
+    t = words_to_digits(strip_clause(text))  # «пяти рабочих дней» → «5 рабочих дней»
     for m in re.finditer(r"\d+(?:[ \u00a0\u202f]\d{3})*(?:[.,]\d+)?", t):
         try:
             v = float(re.sub(r"[ \u00a0\u202f]", "", m.group(0)).replace(",", "."))
@@ -265,7 +265,7 @@ def check_numbers(answer: str, mentions: List[Mention], calc_value=None, questio
     и хотя бы одно — с той единицей, о которой спрашивают (рубли, проценты, дни, месяцы)."""
     ev_nums = []
     for m in mentions:
-        ev_nums += numbers(strip_clause(m.evidence or m.out_quote))
+        ev_nums += numbers(words_to_digits(strip_clause(m.evidence or m.out_quote)))
     ans_nums = numbers(answer)
     if calc_value is not None:
         ans_nums = [x for x in ans_nums if abs(x - calc_value) >= 0.01]

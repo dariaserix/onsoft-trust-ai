@@ -1,0 +1,280 @@
+[
+ {
+  "id": "P01-N01",
+  "package": "P01",
+  "type": "новый: факт",
+  "status": "ответ",
+  "expected": [
+   "многофункциональный центр"
+  ],
+  "quote": "Заказчик: ГКУ «Многофункциональный центр-Пример»",
+  "file": "01_izveshchenie.txt",
+  "kind": "all_kw"
+ },
+ {
+  "id": "P03-N01",
+  "package": "P03",
+  "type": "новый: факт",
+  "status": "ответ",
+  "expected": [
+   "аукцион"
+  ],
+  "quote": "Способ определения поставщика: электронный аукцион",
+  "file": "01_izveshchenie.txt",
+  "kind": "all_kw"
+ },
+ {
+  "id": "P05-N01",
+  "package": "P05",
+  "type": "новый: факт",
+  "status": "ответ",
+  "expected": [
+   26000105
+  ],
+  "quote": "№ 0000000000026000105",
+  "file": "01_izveshchenie.txt",
+  "kind": "num"
+ },
+ {
+  "id": "P01-N02",
+  "package": "P01",
+  "type": "новая ловушка: нет в документах",
+  "status": "нет в документах",
+  "expected": [],
+  "quote": "",
+  "file": ""
+ },
+ {
+  "id": "P02-N01",
+  "package": "P02",
+  "type": "новый: факт",
+  "status": "ответ",
+  "expected": [
+   "правительств"
+  ],
+  "quote": "пени в размере, установленном Правительством Российской Федерации",
+  "file": "01_izveshchenie.txt",
+  "kind": "all_kw"
+ },
+ {
+  "id": "P04-N01",
+  "package": "P04",
+  "type": "новый: факт",
+  "status": "ответ",
+  "expected": [],
+  "quote": "Цена контракта является твёрдой",
+  "file": "01_izveshchenie.txt",
+  "kind": "yes"
+ },
+ {
+  "id": "P06-N01",
+  "package": "P06",
+  "type": "новая ловушка: нет в документах",
+  "status": "нет в документах",
+  "expected": [],
+  "quote": "",
+  "file": ""
+ },
+ {
+  "id": "P05-N02",
+  "package": "P05",
+  "type": "новый: факт",
+  "status": "ответ",
+  "expected": [
+   "арбитражн"
+  ],
+  "quote": "в арбитражном суде по месту нахождения заказчика",
+  "file": "01_izveshchenie.txt",
+  "kind": "all_kw"
+ },
+ {
+  "id": "P04-N02",
+  "package": "P04",
+  "type": "новый: факт",
+  "status": "ответ",
+  "expected": [
+   "образцово",
+   "больничная"
+  ],
+  "quote": "г. Образцово, ул. Больничная, д. 2",
+  "file": "03_opisanie_obekta.txt",
+  "kind": "all_kw"
+ },
+ {
+  "id": "P04-N03",
+  "package": "P04",
+  "type": "новый: факт",
+  "status": "ответ",
+  "expected": [
+   "9:00",
+   "18:00"
+  ],
+  "quote": "ежедневно в рабочие дни с 9:00 до 18:00",
+  "file": "03_opisanie_obekta.txt",
+  "kind": "all_kw"
+ },
+ {
+  "id": "P01-N03",
+  "package": "P01",
+  "type": "новый: таблица",
+  "status": "ответ",
+  "expected": [
+   3
+  ],
+  "quote": "3 | Приёмка | Документ о приёмке",
+  "file": "03_opisanie_obekta.txt",
+  "kind": "num"
+ },
+ {
+  "id": "P05-N03",
+  "package": "P05",
+  "type": "новый: таблица",
+  "status": "ответ",
+  "expected": [
+   "отчет об обследовании"
+  ],
+  "quote": "1 | Обследование | Отчёт об обследовании",
+  "file": "03_opisanie_obekta.txt",
+  "kind": "all_kw"
+ },
+ {
+  "id": "P02-N02",
+  "package": "P02",
+  "type": "новый: факт",
+  "status": "ответ",
+  "expected": [
+   "неисключительн",
+   "офисн"
+  ],
+  "quote": "Объект закупки: Поставка неисключительных лицензий на офисное программное обеспечение",
+  "file": "01_izveshchenie.txt",
+  "kind": "all_kw"
+ },
+ {
+  "id": "P04-N04",
+  "package": "P04",
+  "type": "новый: факт",
+  "status": "ответ",
+  "expected": [
+   1
+  ],
+  "quote": "обеспечение заявки в размере 1 % от НМЦК",
+  "file": "01_izveshchenie.txt",
+  "kind": "num"
+ },
+ {
+  "id": "P06-N02",
+  "package": "P06",
+  "type": "новый: факт",
+  "status": "ответ",
+  "expected": [
+   2
+  ],
+  "quote": "2 % начальной (максимальной) цены контракта",
+  "file": "01_izveshchenie.txt",
+  "kind": "num"
+ },
+ {
+  "id": "P04-N05",
+  "package": "P04",
+  "type": "новый: расчёт",
+  "status": "ответ",
+  "expected": [
+   360000
+  ],
+  "quote": "в объёме не менее 15 % цены контракта",
+  "file": "04_proekt_kontrakta.txt",
+  "kind": "num"
+ },
+ {
+  "id": "P05-N04",
+  "package": "P05",
+  "type": "новый: расчёт",
+  "status": "ответ",
+  "expected": [
+   90000
+  ],
+  "quote": "Размер обеспечения заявки составляет 15 000,00 руб.",
+  "file": "01_izveshchenie.txt",
+  "kind": "num"
+ },
+ {
+  "id": "P02-N03",
+  "package": "P02",
+  "type": "новый: число словами",
+  "status": "ответ",
+  "expected": [
+   5
+  ],
+  "quote": "в течение пяти рабочих дней с даты запроса",
+  "file": "01_izveshchenie.txt",
+  "kind": "num"
+ },
+ {
+  "id": "P02-N04",
+  "package": "P02",
+  "type": "новая ловушка: нет в документах",
+  "status": "нет в документах",
+  "expected": [],
+  "quote": "",
+  "file": ""
+ },
+ {
+  "id": "P05-N05",
+  "package": "P05",
+  "type": "новая ловушка: нет в документах",
+  "status": "нет в документах",
+  "expected": [],
+  "quote": "",
+  "file": ""
+ },
+ {
+  "id": "P04-N06",
+  "package": "P04",
+  "type": "новый: факт",
+  "status": "ответ",
+  "expected": [
+   "2",
+   "информационной безопасности"
+  ],
+  "quote": "не менее 2 (двух) специалистов, имеющих высшее образование или профессиональную переподготовку",
+  "file": "03_opisanie_obekta.txt",
+  "kind": "all_kw"
+ },
+ {
+  "id": "P03-N02",
+  "package": "P03",
+  "type": "новый: факт",
+  "status": "ответ",
+  "expected": [
+   "квалификац"
+  ],
+  "quote": "с копиями документов о квалификации",
+  "file": "02_trebovaniya_k_zayavke.txt",
+  "kind": "all_kw"
+ },
+ {
+  "id": "P01-N04",
+  "package": "P01",
+  "type": "новый: факт",
+  "status": "ответ",
+  "expected": [
+   "декларац"
+  ],
+  "quote": "Декларация о принадлежности участника закупки к субъектам малого предпринимательства",
+  "file": "02_trebovaniya_k_zayavke.txt",
+  "kind": "all_kw"
+ },
+ {
+  "id": "P06-N03",
+  "package": "P06",
+  "type": "новый: факт",
+  "status": "ответ",
+  "expected": [
+   "10.11.2026"
+  ],
+  "quote": "от 10.11.2026",
+  "file": "05_izmeneniya_izveshcheniya.txt",
+  "kind": "all_kw"
+ }
+]

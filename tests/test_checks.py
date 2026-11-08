@@ -105,6 +105,28 @@ class TestChecks(unittest.TestCase):
                   max_retries=0)
         self.assertEqual((r.status, r.answer), ("ответ", "нет, не установлено"))
 
+    def test_number_written_in_words(self):
+        """«в течение пяти рабочих дней» подтверждает ответ «5»; «тридцать шесть» — это 36, а не 306."""
+        from trustai.textutil import words_to_digits
+        self.assertEqual(words_to_digits("в течение пяти рабочих дней"), "в течение 5 рабочих дней")
+        self.assertEqual(words_to_digits("36 (тридцать шесть) месяцев"), "36 (36) месяцев")
+        self.assertEqual(words_to_digits("семья и тридцатилетие"), "семья и тридцатилетие")
+        m = C.Mention(sid="", file="f", quote="", value="", evidence="в течение пяти рабочих дней с даты запроса")
+        self.assertEqual(C.check_numbers("5", [m], question="За сколько рабочих дней заказчик предоставляет информацию?"), [])
+        self.assertTrue(C.check_numbers("6", [m]))
+
+    def test_table_and_header_retrieved(self):
+        """Строка таблицы тянет за собой всю таблицу; шапка документа (заказчик, объект) всегда видна модели."""
+        from trustai.retrieval import Retriever
+        R = Retriever(load_package(PK / "P01"))
+        sel = " ".join(s.text for s in R.select("Сколько этапов работ предусмотрено описанием объекта закупки?"))
+        for row in ("1 | Обследование", "2 | Выполнение работ", "3 | Приёмка"):
+            self.assertIn(row, sel)
+        self.assertIn("Заказчик:", " ".join(s.text for s in R.select("Кто является заказчиком?")))
+        # число в начале строки таблицы — значение ячейки, а не номер пункта
+        m = C.Mention(sid="", file="f", quote="", value="", evidence="3 | Приёмка | Документ о приёмке")
+        self.assertEqual(C.check_numbers("3", [m]), [])
+
     def test_discrepancy_detected(self):
         r = solve("P01", "Какой срок выполнения работ, в календарных днях?",
                   [{"status": "ответ", "answer": "60", "mentions": [

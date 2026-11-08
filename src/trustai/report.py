@@ -122,6 +122,7 @@ def build_report(results_dir: Path, data_dir: Path) -> Path:
     sources = [("учебный набор", final["step"], base["step"], gold)]
     for label, fin, bas, d in (("переформулированные вопросы", "para_final", "para_00_baseline", "paraphrase"),
                                ("трудные файлы", "hard_final", "hard_00_baseline", "hard"),
+                               ("новые типы вопросов", "newtypes_final", "newtypes_00_baseline", "newtypes"),
                                ("без рассуждений, учебный набор", "nothink_train_final", "nothink_train_00_baseline", "train"),
                                ("без рассуждений, другие формулировки", "nothink_paraphrase_final",
                                 "nothink_paraphrase_00_baseline", "paraphrase")):
@@ -192,7 +193,9 @@ def build_report(results_dir: Path, data_dir: Path) -> Path:
     for label, note, bas, fin in (
             ("Учебный набор организатора", "на нём разбирали ошибки", base["step"], final["step"]),
             ("Те же закупки, вопросы другими словами", "71 вопрос переформулирован вручную", "para_00_baseline", "para_final"),
-            ("Трудные файлы", "кодировка Windows-1251, пустой файл, спрятанная инструкция для ИИ, документ раздут в 15 раз", "hard_00_baseline", "hard_final")):
+            ("Трудные файлы", "кодировка Windows-1251, пустой файл, спрятанная инструкция для ИИ, документ раздут в 15 раз", "hard_00_baseline", "hard_final"),
+            ("Новые типы вопросов", "24 вопроса о том, о чём учебный набор не спрашивает (заказчик, пени, таблицы, числа "
+             "словами, новые расчёты и ловушки); ответы выписаны вручную", "newtypes_00_baseline", "newtypes_final")):
         b0, f0 = sc(bas), sc(fin)
         if b0 and f0:
             gen_rows.append(f'''<tr><td><b>{E(label)}</b><br><span class="note">{E(note)}</span></td><td class="num">{f0.get("n")}</td>

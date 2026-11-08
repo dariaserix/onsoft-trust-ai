@@ -4,6 +4,7 @@
 Меньше шума, меньше выдумок, меньше токенов.
 """
 import math
+import re
 from collections import Counter
 from typing import List
 
@@ -57,6 +58,8 @@ class Retriever:
             df.update(c.keys())
         n = len(self.docs) or 1
         self.idf = {t: math.log(1 + (n - d + 0.5) / (d + 0.5)) for t, d in df.items()}
+        self.header = [s for s in self.docs if s.line <= 8 and not pkg.docs[s.file].is_amendment and len(s.text) < 200
+                       and (re.match(r"^[^\W\d][^:]{2,45}:\s*\S", s.text) or "№" in s.text)]
 
     def expand(self, question: str) -> Counter:
         q = Counter(stems(question))
@@ -109,6 +112,12 @@ class Retriever:
             for s in self.docs:
                 if self.pkg.docs[s.file].is_amendment:
                     add(s)
+        # «шапка» документов (номер, заказчик, объект, способ, цена): короткие строки «Реквизит: значение» в начале
+        # файла. Слова в них встречаются по всему документу, поэтому поиск их недооценивает, а спрашивают о них часто.
+        for s in self.header:
+            add(s)
+        # таблицы целиком: одна строка таблицы без соседних бесполезна («сколько этапов?», «результат этапа 1?»)
+        chosen = self._with_tables(chosen)
         # укладываемся в бюджет символов, сохраняя порядок важности
         total, res = 0, []
         for s in chosen:
@@ -120,6 +129,38 @@ class Retriever:
         order = {s.sid: i for i, s in enumerate(self.pkg.sentences)}
         res.sort(key=lambda s: order[s.sid])
         return res
+
+
+    def _with_tables(self, chosen: List[Sentence], max_rows=40) -> List[Sentence]:
+        """Если выбрана строка таблицы (есть «|») или заголовок прямо над таблицей — добавляем всю таблицу
+        сразу после неё (так строки не отрежет бюджет символов)."""
+        allp = [s for s in self.pkg.sentences if not s.injection]
+        idx = {s.sid: i for i, s in enumerate(allp)}
+
+        def is_row(i):
+            return 0 <= i < len(allp) and "|" in allp[i].text
+
+        out, seen = [], set()
+        for s in chosen:
+            if s.sid not in seen:
+                seen.add(s.sid)
+                out.append(s)
+            i = idx.get(s.sid)
+            if i is None:
+                continue
+            start = i if is_row(i) else (i + 1 if is_row(i + 1) and allp[i + 1].file == s.file else None)
+            if start is None:
+                continue
+            lo, hi = start, start
+            while is_row(lo - 1) and allp[lo - 1].file == s.file and start - lo < max_rows:
+                lo -= 1
+            while is_row(hi + 1) and allp[hi + 1].file == s.file and hi - start < max_rows:
+                hi += 1
+            for j in range(lo, hi + 1):
+                if allp[j].sid not in seen:
+                    seen.add(allp[j].sid)
+                    out.append(allp[j])
+        return out
 
 
 def render_fragments(sentences: List[Sentence]) -> str:

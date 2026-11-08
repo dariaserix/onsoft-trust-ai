@@ -237,7 +237,7 @@ class Solver:
                 else:
                     ev_nums = []
                     for m in active:
-                        ev_nums += numbers(C.strip_clause(m.evidence))
+                        ev_nums += numbers(C.words_to_digits(C.strip_clause(m.evidence)))
                     bad = [x for x in C.calc_operands(expr) if x not in (100.0,) and not any(abs(x - y) < 0.01 for y in ev_nums)]
                     if bad and cfg["number_check"]:
                         issues.append(C.Issue("calc", "В расчёте есть числа, которых нет в цитатах: "
