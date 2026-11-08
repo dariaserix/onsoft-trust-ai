@@ -15742,3 +15742,6 @@
 {"ts": "2026-11-09 01:08:36", "qid": "P02-N04", "purpose": "baseline", "model": "openai:qwen3-6-practice", "cached": false, "prompt_tokens": 5621, "completion_tokens": 516, "seconds": 10.62}
 {"ts": "2026-11-09 01:08:40", "qid": "P01-N04", "purpose": "baseline", "model": "openai:qwen3-6-practice", "cached": false, "prompt_tokens": 6220, "completion_tokens": 105, "seconds": 3.79}
 {"ts": "2026-11-09 01:08:40", "qid": "P06-N03", "purpose": "baseline", "model": "openai:qwen3-6-practice", "cached": false, "prompt_tokens": 6150, "completion_tokens": 107, "seconds": 3.84}
+{"ts": "2026-11-09 01:31:11", "qid": "ASK", "purpose": "answer#0", "model": "openai:qwen3-6-practice", "cached": false, "prompt_tokens": 1249, "completion_tokens": 1003, "seconds": 12.94}
+{"ts": "2026-11-09 01:31:15", "qid": "ASK", "purpose": "answer#0", "model": "openai:qwen3-6-practice", "cached": false, "prompt_tokens": 1297, "completion_tokens": 336, "seconds": 4.23}
+{"ts": "2026-11-09 01:31:21", "qid": "ASK", "purpose": "absent_check", "model": "openai:qwen3-6-practice", "cached": false, "prompt_tokens": 5646, "completion_tokens": 284, "seconds": 5.68}
