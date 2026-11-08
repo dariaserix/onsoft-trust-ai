@@ -16,3 +16,5 @@ data/control/*
 !data/control/README.md
 .DS_Store
 Thumbs.db
+# логи прогонов (могут содержать служебные ответы сервера)
+results/*.log

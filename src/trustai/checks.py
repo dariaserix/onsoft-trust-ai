@@ -139,30 +139,55 @@ def verify_mentions(pkg: Package, raw_mentions, repair=True):
 
 # --- 2. критик изменений извещения --------------------------------------------
 
-def check_amendments(pkg: Package, mentions: List[Mention]):
+def _uses_old_value(answer: str, old_text: str, new_text: str, has_active: bool) -> bool:
+    """Ответ опирается на старую редакцию? Числа (суммы, даты, сроки), которые есть в старой редакции, но
+    исчезли в новой, — признак старого значения. Если в ответе чисел нет, судим по тому, осталась ли
+    у ответа хоть одна действующая цитата."""
+    ans = numbers(answer)
+    if ans:
+        new = numbers(new_text)
+        only_old = [x for x in numbers(strip_clause(old_text)) if not any(abs(x - y) < 0.01 for y in new)]
+        return any(any(abs(a - x) < 0.01 for x in only_old) for a in ans)
+    return not has_active
+
+
+def check_amendments(pkg: Package, mentions: List[Mention], answer: str = ""):
+    """Значение из старой редакции пункта, изменённого в «изменениях извещения».
+    Модель часто честно приводит обе цитаты (старую и новую) и отвечает по новой — это не ошибка:
+    старая цитата просто откладывается. Замечание — только если сам ответ взят из старой редакции."""
     issues, events = [], []
     if not pkg.amendments:
         return issues, events
+    found = []  # (упоминание, поправка, цитата из файла изменений?)
     for m in mentions:
         ev = norm(m.evidence or m.quote)
         if m.amendment:
             # цитата из файла изменений, но из старой редакции пункта
             for a in pkg.amendments:
                 if norm(m.out_quote) in norm(a.old) and norm(m.out_quote) not in norm(a.new):
-                    issues.append(Issue("amendment", f"Цитата «{m.out_quote[:80]}» — это СТАРАЯ редакция пункта. "
-                                                     f"Новая редакция: «{a.new}»."))
-                    events.append({"critic": "amendment", "caught": True,
-                                   "message": "Модель процитировала старую редакцию из файла изменений."})
+                    m.superseded_by = a.new
+                    found.append((m, a, True))
             continue
         for a in pkg.amendments:
             old = norm(a.old)[:45]
             if len(old) >= 15 and old in ev:
                 m.superseded_by = a.new
-                issues.append(Issue("amendment", f"Пункт «{m.out_quote[:80]}» изменён в изменениях извещения. "
-                                                 f"Верна только новая редакция: «{a.new}». Используй её."))
-                events.append({"critic": "amendment", "caught": True,
-                               "message": f"Модель взяла значение из старой редакции: «{m.out_quote[:70]}». "
-                                          f"В изменениях: «{a.new[:70]}»."})
+                found.append((m, a, False))
+    has_active = any(not m.superseded_by for m in mentions)
+    for m, a, in_amend_file in found:
+        if not _uses_old_value(answer, m.evidence or m.out_quote, a.new, has_active):
+            continue  # ответ уже по новой редакции, старую цитату просто не используем
+        if in_amend_file:
+            issues.append(Issue("amendment", f"Цитата «{m.out_quote[:80]}» — это СТАРАЯ редакция пункта. "
+                                             f"Новая редакция: «{a.new}»."))
+            events.append({"critic": "amendment", "caught": True,
+                           "message": "Модель процитировала старую редакцию из файла изменений."})
+        else:
+            issues.append(Issue("amendment", f"Пункт «{m.out_quote[:80]}» изменён в изменениях извещения. "
+                                             f"Верна только новая редакция: «{a.new}». Используй её."))
+            events.append({"critic": "amendment", "caught": True,
+                           "message": f"Модель взяла значение из старой редакции: «{m.out_quote[:70]}». "
+                                      f"В изменениях: «{a.new[:70]}»."})
     return issues, events
 
 

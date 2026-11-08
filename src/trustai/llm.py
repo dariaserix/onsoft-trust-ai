@@ -66,6 +66,7 @@ def strip_reasoning(text: str) -> str:
 
 class BaseLLM:
     provider = "base"
+    supports_no_think = False  # умеет ли провайдер отвечать без рассуждений
 
     def __init__(self, model, temperature=0.1, max_tokens=1200, cache_dir=None, journal=None, timeout=120,
                  use_cache=True):
@@ -76,7 +77,9 @@ class BaseLLM:
         self.journal = Path(journal or ROOT / "results" / "journal.jsonl")
         self.timeout = timeout
         self.use_cache = use_cache
-        self.stats = {"calls": 0, "cached": 0, "prompt_tokens": 0, "completion_tokens": 0, "seconds": 0.0}
+        # model_seconds — время ответов модели (для ответов из кэша — время их первого получения)
+        self.stats = {"calls": 0, "cached": 0, "prompt_tokens": 0, "completion_tokens": 0, "seconds": 0.0,
+                      "model_seconds": 0.0}
         self._lock = threading.Lock()  # запросы могут идти в 2 потока (лимит ключа ОНСОФТ)
 
     @property
@@ -100,13 +103,27 @@ class BaseLLM:
         if self.use_cache and cpath.exists():
             data = json.loads(cpath.read_text(encoding="utf-8"))
             res = LLMResult(data["text"], True, data.get("prompt_tokens", 0), data.get("completion_tokens", 0), 0.0)
+            res.model_seconds = float(data.get("seconds", 0.0))  # сколько модель думала, когда ответ получен впервые
         else:
             t0 = time.time()
-            text, pt, ct = self._call(messages) if think else self._call(messages, think=False)
+            fallback = False
+            try:
+                text, pt, ct = self._call(messages) if think else self._call(messages, think=False)
+            except LLMError as e:
+                # Сервер ОНСОФТ рвёт соединение, если модель рассуждает слишком долго. Тогда тот же запрос
+                # повторяем без рассуждений: ответ будет, а не «не знаю» из-за сбоя связи.
+                if not (think and self.supports_no_think and str(e).startswith(("Сеть", "HTTP 5"))):
+                    raise
+                text, pt, ct = self._call(messages, think=False)
+                fallback = True
             res = LLMResult(text, False, pt, ct, time.time() - t0)
+            res.model_seconds = res.seconds
             cpath.parent.mkdir(parents=True, exist_ok=True)
-            cpath.write_text(json.dumps({"text": text, "prompt_tokens": pt, "completion_tokens": ct,
-                                         "model": self.name}, ensure_ascii=False), encoding="utf-8")
+            entry = {"text": text, "prompt_tokens": pt, "completion_tokens": ct, "model": self.name,
+                     "seconds": round(res.seconds, 2)}
+            if fallback:
+                entry["no_think_fallback"] = True
+            cpath.write_text(json.dumps(entry, ensure_ascii=False), encoding="utf-8")
         with self._lock:
             self._account(res, purpose, qid)
         return res
@@ -117,6 +134,7 @@ class BaseLLM:
         self.stats["prompt_tokens"] += res.prompt_tokens
         self.stats["completion_tokens"] += res.completion_tokens
         self.stats["seconds"] += res.seconds
+        self.stats["model_seconds"] += getattr(res, "model_seconds", res.seconds)
         self.journal.parent.mkdir(parents=True, exist_ok=True)
         with self.journal.open("a", encoding="utf-8") as f:
             f.write(json.dumps({"ts": time.strftime("%Y-%m-%d %H:%M:%S"), "qid": qid, "purpose": purpose,
@@ -132,14 +150,25 @@ class BaseLLM:
     def _post(self, url, headers, body: bytes, ctx=None):
         delay = 2.0
         last = None
-        for attempt in range(4):  # дальше — повтор вопроса целиком (runner.py)
+        busy = 0
+        attempt = 0
+        while attempt < 4:  # дальше — повтор вопроса целиком (runner.py)
+            attempt += 1
             req = urllib.request.Request(url, data=body, headers=headers, method="POST")
             try:
                 with urllib.request.urlopen(req, timeout=self.timeout, context=ctx) as r:
                     return json.loads(r.read().decode("utf-8"))
             except urllib.error.HTTPError as e:
                 detail = e.read().decode("utf-8", "replace")[:500]
+                # в тексте ошибки сервер может повторить идентификатор ключа — в журнал его не пишем
+                detail = re.sub(r"api_key:\s*\S+", "api_key: ***", detail)
                 last = LLMError(f"HTTP {e.code}: {detail}")
+                if e.code == 429 and busy < 12:
+                    # лимит ключа (2 параллельных, 40 в минуту): ждём и пробуем снова, попытку не тратим
+                    busy += 1
+                    attempt -= 1
+                    time.sleep(min(5.0 * busy, 30.0))
+                    continue
                 if e.code in (429, 500, 502, 503, 504):
                     time.sleep(delay)
                     delay *= 2
@@ -151,6 +180,8 @@ class BaseLLM:
                 raise last
             except (urllib.error.URLError, TimeoutError, ConnectionError) as e:
                 last = LLMError(f"Сеть: {e}")
+                if attempt >= 2:
+                    break  # дальше — запрос без рассуждений (chat) или повтор вопроса целиком (runner.py)
                 time.sleep(delay)
                 delay *= 2
         raise last
@@ -258,6 +289,7 @@ class GigaChat(BaseLLM):
 
 class OpenAICompatible(BaseLLM):
     provider = "openai"
+    supports_no_think = True
 
     def __init__(self, model=None, **kw):
         super().__init__(model or os.environ.get("OPENAI_MODEL", ""), **kw)

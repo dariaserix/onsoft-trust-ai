@@ -186,7 +186,7 @@ class Solver:
 
         # 2. изменения извещения
         if cfg["amendment_check"]:
-            iss, ev = C.check_amendments(pkg, mentions)
+            iss, ev = C.check_amendments(pkg, mentions, answer + " " + str(data.get("calc", "") or ""))
             issues += iss
             events += ev
             active = [m for m in mentions if not m.superseded_by]
@@ -244,6 +244,10 @@ class Solver:
         if cfg["quote_check"] and not pkg.quote_in_docs(quote):
             issues.append(C.Issue("quote", "Итоговая цитата не найдена в документах."))
         res = Result(qid, status, normalize_answer_numbers(answer), quote, main.file)
+        # все проверенные цитаты — для ИИ-критика (одной итоговой цитаты мало: в расчёте их две)
+        res.evidence = [(m.file, m.evidence or m.out_quote) for m in (active or mentions)]
+        if calc_value is not None:
+            res.evidence.append(("расчёт кодом", f"{data.get('calc')} = {fmt_number(round(calc_value, 2))}"))
         return res, issues, events
 
     def pick_main(self, mentions, answer):
@@ -346,7 +350,9 @@ class Solver:
     def llm_critic(self, qid, question, cand: Result):
         msgs = [{"role": "system", "content": load_prompt("critic_system.txt")},
                 {"role": "user", "content": fill(load_prompt("critic_user.txt"), question=question, answer=cand.answer,
-                                                 status=cand.status, quotes=f"({cand.file}) {cand.quote}")}]
+                                                 status=cand.status,
+                                                 quotes="\n".join(f"- ({f}) {q}" for f, q in
+                                                                  (getattr(cand, "evidence", None) or [(cand.file, cand.quote)])))}]
         r = self.llm.chat(msgs, purpose="llm_critic", qid=qid)
         d = C.parse_json(r.text) or {}
         if d.get("ok") is False:

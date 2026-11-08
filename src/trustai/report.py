@@ -106,29 +106,47 @@ def build_report(results_dir: Path, data_dir: Path) -> Path:
         contrib.append(f'<tr><td>{E(cur.get("title", cur["step"]))}</td><td class="num {"pos" if d > 0 else "neg" if d < 0 else ""}">'
                        f'{d:+.1f}</td><td class="num">{dl:+d}</td></tr>')
 
-    # --- пойманные обманы (из трассы итоговой системы)
-    final_res = {r["id"]: r for r in _read_csv(runs / final["step"] / "result.csv")}
-    base_ans = {r["id"]: r for r in _read_csv(runs / base["step"] / "answers.csv")}
+    # --- пойманные обманы (из трасс итоговой системы на всех наборах, где есть правильные ответы)
+    def load_gold(d):
+        p = Path(d) / "answers_public.json"
+        return {g["id"]: g for g in json.loads(p.read_text(encoding="utf-8"))} if p.exists() else {}
+
+    root = Path(data_dir).parent
+    sources = [("учебный набор", final["step"], base["step"], gold)]
+    for label, fin, bas, d in (("переформулированные вопросы", "para_final", "para_00_baseline", "paraphrase"),
+                               ("трудные файлы", "hard_final", "hard_00_baseline", "hard")):
+        if (runs / fin / "trace.jsonl").exists():
+            sources.append((label, fin, bas, load_gold(root / d)))
     examples = []
-    for t in _read_jsonl(runs / final["step"] / "trace.jsonl"):
-        evs = [e for s in t["trace"] for e in s.get("events", []) if e.get("caught")]
-        evs += [i for s in t["trace"] for i in s.get("issues", [])]
-        evs += [s for s in t["trace"] if s.get("step") == "injection"][:1]
-        if not evs:
-            continue
-        ok = final_res.get(t["id"], {}).get("verdict")
-        first = next((s.get("first_answer") for s in t["trace"] if s.get("step") == "final"), None) or {}
-        examples.append((0 if ok == "верно" else 1, t, evs, ok, first))
+    for label, fin, bas, gd in sources:
+        fres = {r["id"]: r for r in _read_csv(runs / fin / "result.csv")} if (runs / fin / "result.csv").exists() else {}
+        bans = {r["id"]: r for r in _read_csv(runs / bas / "answers.csv")} if (runs / bas / "answers.csv").exists() else {}
+        for t in _read_jsonl(runs / fin / "trace.jsonl"):
+            evs = [e for s in t["trace"] for e in s.get("events", []) if e.get("caught")]
+            evs += [s for s in t["trace"] if s.get("step") == "injection"][:1]
+            if not evs:
+                continue
+            ok = fres.get(t["id"], {}).get("verdict")
+            first = next((s.get("first_answer") for s in t["trace"] if s.get("step") == "final"), None) or {}
+            # сначала — где первый ответ модели был другим (обман пойман и исправлен), потом остальные
+            changed = str(first.get("answer", "")) != str(t.get("answer", "")) or first.get("status") != t.get("status")
+            kinds = tuple(sorted(set(e.get("critic", "") for e in evs)))
+            examples.append(((0 if ok == "верно" else 1, 0 if changed else 1), kinds, label, t, evs, ok, first,
+                             gd.get(t["id"], {}), bans.get(t["id"], {})))
     examples.sort(key=lambda x: x[0])
+    picked, seen_kinds = [], set()
+    for ex in examples:  # по одному примеру на каждый вид пойманного обмана, затем остальные
+        if ex[1] not in seen_kinds:
+            seen_kinds.add(ex[1])
+            picked.append(ex)
+    picked += [ex for ex in examples if ex not in picked and ex[1] != ("injection",)]
     ex_html = []
-    for _, t, evs, ok, first in examples[:8]:
-        g = gold.get(t["id"], {})
-        b = base_ans.get(t["id"], {})
+    for _, _, label, t, evs, ok, first, g, b in picked[:8]:
         ev_html = "".join(f'<li><b>{E(CRITIC_NAMES.get(e.get("critic"), e.get("critic", "")))}:</b> {E(e.get("message", ""))}</li>' for e in evs[:3])
         ex_html.append(f'''<article class="case">
-  <div class="case-q"><span class="pill">{E(t["id"])}</span> {E(t.get("question", ""))}</div>
+  <div class="case-q"><span class="pill">{E(t["id"])}</span> {E(t.get("question", ""))} <span class="src">{E(label)}</span></div>
   <div class="case-grid">
-    <div><h4>Было (без проверок)</h4><p>{E(b.get("status", "—"))}: <b>{E(b.get("answer", "") or "—")}</b></p></div>
+    <div><h4>Было (модель без проверок)</h4><p>{E(b.get("status", "—"))}: <b>{E(b.get("answer", "") or "—")}</b></p></div>
     <div><h4>Модель сначала ответила</h4><p>{E(str(first.get("status", "—")))}: <b>{E(str(first.get("answer", "") or "—"))}</b></p></div>
     <div><h4>Итог системы</h4><p>{E(t.get("status", ""))}: <b>{E(t.get("answer", "") or "—")}</b>
       <span class="verdict {"v-ok" if ok == "верно" else "v-unk" if ok == "осторожно" else "v-lie"}">{E(ok or "")}</span></p></div>
@@ -136,6 +154,49 @@ def build_report(results_dir: Path, data_dir: Path) -> Path:
   <ul class="caught">{ev_html}</ul>
   {f'<p class="truth">Правильно: {E(g.get("status", ""))} {E(" / ".join(map(str, g.get("expected", []))))}</p>' if g else ""}
 </article>''')
+
+    # --- проверка на данных, на которых систему не настраивали
+    def sc(step):
+        p = runs / step / "score.json"
+        return json.loads(p.read_text(encoding="utf-8")) if p.exists() else None
+    gen_rows = []
+    for label, note, bas, fin in (
+            ("Учебный набор организатора", "на нём разбирали ошибки", base["step"], final["step"]),
+            ("Те же закупки, вопросы другими словами", "71 вопрос переформулирован вручную", "para_00_baseline", "para_final"),
+            ("Трудные файлы", "кодировка Windows-1251, пустой файл, спрятанная инструкция для ИИ, документ раздут в 15 раз", "hard_00_baseline", "hard_final")):
+        b0, f0 = sc(bas), sc(fin)
+        if b0 and f0:
+            gen_rows.append(f'''<tr><td><b>{E(label)}</b><br><span class="note">{E(note)}</span></td><td class="num">{f0.get("n")}</td>
+<td class="num">{b0.get("index")} <span class="lie-t">({b0.get("lies")} обм.)</span></td>
+<td class="num"><b>{f0.get("index")}</b> <span class="lie-t">({f0.get("lies")} обм.)</span></td></tr>''')
+
+    # --- вклад каждой проверки: выключаем по одной из итоговой системы
+    loo = {}
+    for tag in ("train", "paraphrase"):
+        p = results_dir / f"loo_{tag}.json"
+        if p.exists():
+            loo[tag] = json.loads(p.read_text(encoding="utf-8"))
+    loo_rows = []
+    if loo:
+        tags = list(loo)
+        full = {t: loo[t][0] for t in tags}
+        titles = [r["title"] for r in loo[tags[0]]][1:]
+        for title in titles:
+            cells = ""
+            for t in tags:
+                r = next((x for x in loo[t] if x["title"] == title), None)
+                if not r:
+                    cells += "<td></td>"
+                    continue
+                d = (r.get("index") or 0) - (full[t].get("index") or 0)
+                dl = (r.get("lies") or 0) - (full[t].get("lies") or 0)
+                cls = "neg" if d < 0 else "pos" if d > 0 else ""
+                cells += (f'<td class="num"><span class="{cls}">{d:+.1f}</span>'
+                          f'{f" <span class=lie-t>(+{dl} обм.)</span>" if dl > 0 else ""}</td>')
+            loo_rows.append(f"<tr><td>без: {E(title)}</td>{cells}</tr>")
+        loo_head = "".join(f'<th class="num">{"учебный набор" if t == "train" else "другие формулировки"}</th>' for t in tags)
+    else:
+        loo_head = ""
 
     fs = json.loads((runs / final["step"] / "stats.json").read_text(encoding="utf-8")) if (runs / final["step"] / "stats.json").exists() else {}
 
@@ -174,7 +235,8 @@ h1 {{ font-size:32px; margin:0 0 4px }} h2 {{ font-size:22px; margin:40px 0 12px
 .bar-idx {{ font-weight:700; text-align:right; font-variant-numeric:tabular-nums }}
 table {{ width:100%; border-collapse:collapse; font-size:15px }} th,td {{ text-align:left; padding:8px 6px; border-bottom:1px solid var(--line) }}
 th {{ color:var(--muted); font-weight:600; font-size:13px }} .num {{ text-align:right; font-variant-numeric:tabular-nums }}
-.lie-t {{ color:var(--lie) }}
+.lie-t {{ color:var(--lie) }} .note {{ color:var(--muted); font-size:13px }}
+.src {{ color:var(--muted); font-size:12px; font-weight:400; margin-left:6px }}
 .two {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:12px }}
 .case {{ background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px; margin-bottom:12px }}
 .case-q {{ font-weight:600; margin-bottom:10px }} .pill {{ background:var(--accent); color:#fff; border-radius:6px; padding:1px 7px; font-size:12px; margin-right:6px }}
@@ -216,13 +278,23 @@ footer {{ color:var(--muted); font-size:13px; margin-top:40px }}
     <tr><th>Шаг</th><th class="num">Индекс</th><th class="num">Обманов</th></tr>{"".join(contrib)}</table></div></div>
 </div>
 
+<h2>Работает ли на том, на чём её не настраивали</h2>
+<div class="card"><table>
+  <tr><th>Набор</th><th class="num">Вопросов</th><th class="num">Было: индекс</th><th class="num">Стало: индекс</th></tr>
+  {"".join(gen_rows) or '<tr><td colspan=4>нет данных</td></tr>'}
+</table></div>
+
+{f'''<h2>Вклад каждой проверки</h2>
+<p class="sub">Выключаем одну проверку в итоговой системе и смотрим, насколько упадёт индекс доверия. Ноль — на этих вопросах проверка не понадобилась.</p>
+<div class="card"><table><tr><th>Что выключили</th>{loo_head}</tr>{"".join(loo_rows)}</table></div>''' if loo_rows else ""}
+
 <h2>Обманы, которые система поймала</h2>
 {"".join(ex_html) or '<p class="sub">Пока нет примеров.</p>'}
 
 <h2>Стоимость</h2>
 <div class="card"><table>
-  <tr><th>Шаг</th><th class="num">Запросов к модели</th><th class="num">Токенов</th><th class="num">Время, с</th></tr>
-  {"".join(f'<tr><td>{E(r.get("title", r["step"]))}</td><td class="num">{r.get("calls", "")}</td><td class="num">{r.get("tokens", "")}</td><td class="num">{r.get("seconds", "")}</td></tr>' for r in ladder)}
+  <tr><th>Шаг</th><th class="num">Запросов к модели</th><th class="num">Токенов</th><th class="num">Время ответов модели, с</th></tr>
+  {"".join(f'<tr><td>{E(r.get("title", r["step"]))}</td><td class="num">{r.get("calls", "")}</td><td class="num">{r.get("tokens", "")}</td><td class="num">{round(r.get("model_seconds") or r.get("seconds") or 0)}</td></tr>' for r in ladder)}
 </table></div>
 <footer>Замер официальным check.py организатора на одной и той же модели. Система не видит правильных ответов: их использует только оценщик.</footer>
 </main></body></html>"""

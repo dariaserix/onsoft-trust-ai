@@ -5,6 +5,7 @@
   python run.py solve                         прогнать вопросы (по умолчанию data/train, конфиг configs/final.json)
   python run.py solve --data data/control     контрольный набор в день защиты → results/control/answers.csv
   python run.py ladder                        замер «было → стало» по всем шагам из configs/
+  python run.py loo                           вклад каждой проверки: выключаем по одной из итоговой системы
   python run.py report                        собрать дашборд results/report.html
 """
 import argparse
@@ -90,9 +91,46 @@ def cmd_ladder(a):
               f"обман {s.get('lies')} | запросов {st['calls']} | токенов {st['prompt_tokens'] + st['completion_tokens']}")
         rows.append({"step": cfg["name"], "title": cfg["title"], "description": cfg.get("description", ""), **s,
                      "calls": st["calls"], "tokens": st["prompt_tokens"] + st["completion_tokens"],
-                     "seconds": st["wall_seconds"], "model": st["model"]})
+                     "seconds": st["wall_seconds"], "model_seconds": round(st.get("model_seconds", 0), 1),
+                     "model": st["model"]})
     (ROOT / "results" / "ladder.json").write_text(json.dumps(rows, ensure_ascii=False, indent=2), encoding="utf-8")
     print("\nСводка сохранена в results/ladder.json. Дашборд: python run.py report")
+
+
+# Что выключаем при замере вклада (leave-one-out): название → изменения конфига
+LOO = [
+    ("Проверка цитат", {"quote_check": False, "quote_repair": False}),
+    ("Проверка чисел и единиц", {"number_check": False}),
+    ("Расчёт кодом", {"calc_in_code": False}),
+    ("Критик изменений извещения", {"amendment_check": False}),
+    ("Критик расхождений", {"discrepancy_check": False, "discrepancy_llm": False}),
+    ("Критик «да/нет» и отрицаний", {"yesno_check": False}),
+    ("Перепроверка «нет в документах»", {"absent_check": False}),
+    ("Агентный цикл (исправление по замечаниям)", {"max_retries": 0}),
+    ("Поиск нужных кусков документа", {"retrieval": False}),
+]
+
+
+def cmd_loo(a):
+    """Вклад каждой проверки: итоговая система минус одна проверка. Насколько упадёт индекс без неё."""
+    llm = make_llm()
+    base_cfg = load_config(a.config)
+    data = Path(a.data)
+    tag = data.name
+    rows = []
+    for title, change in [("Итоговая система (всё включено)", {})] + LOO:
+        cfg = dict(base_cfg, **change, name=f"loo_{tag}_" + ("final" if not change else "_".join(sorted(change))))
+        out = ROOT / "results" / "runs" / cfg["name"]
+        ans, st = run_set(llm, cfg, data, out, only=a.only, limit=a.limit, progress=False)
+        sc = score(ans, data, out / "result.csv")
+        s = sc["summary"] if sc else {}
+        print(f"  {title:45} индекс {s.get('index')} | верно {s.get('correct')} | не знаю {s.get('careful')} | "
+              f"обман {s.get('lies')} | запросов {st['calls']}")
+        rows.append({"title": title, "off": list(change), **s, "calls": st["calls"],
+                     "tokens": st["prompt_tokens"] + st["completion_tokens"],
+                     "model_seconds": round(st.get("model_seconds", 0), 1)})
+    (ROOT / "results" / f"loo_{tag}.json").write_text(json.dumps(rows, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"\nСохранено: results/loo_{tag}.json")
 
 
 def cmd_report(a):
@@ -108,7 +146,7 @@ def main():
     p = sub.add_parser("ask")
     p.add_argument("package")
     p.add_argument("question")
-    for p in (p, sub.add_parser("solve"), sub.add_parser("ladder"), sub.add_parser("report")):
+    for p in (p, sub.add_parser("solve"), sub.add_parser("ladder"), sub.add_parser("loo"), sub.add_parser("report")):
         p.add_argument("--data", default=str(ROOT / "data" / "train"))
         p.add_argument("--config", default=str(ROOT / "configs" / "final.json"))
         p.add_argument("--out")
@@ -117,7 +155,7 @@ def main():
         p.add_argument("--steps", nargs="*")
     a = ap.parse_args()
     try:
-        {"check": cmd_check, "ask": cmd_ask, "solve": cmd_solve, "ladder": cmd_ladder, "report": cmd_report}[a.cmd](a)
+        {"check": cmd_check, "ask": cmd_ask, "solve": cmd_solve, "ladder": cmd_ladder, "loo": cmd_loo, "report": cmd_report}[a.cmd](a)
     except LLMError as e:
         print(f"\nОшибка модели: {e}")
         sys.exit(1)

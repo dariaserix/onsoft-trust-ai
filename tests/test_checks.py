@@ -63,6 +63,27 @@ class TestChecks(unittest.TestCase):
                   max_retries=0)
         self.assertEqual(r.status, "не знаю")
 
+    def test_amendment_both_quotes_new_answer_ok(self):
+        """Модель привела и старую, и новую редакцию, но ответила по новой — это не обман."""
+        pkg = load_package(PK / "P01")
+        old = next(s for s in pkg.sentences if "24.11.2026 10:00" in s.text and s.file.startswith("01"))
+        new = next(s for s in pkg.sentences if "27.11.2026 10:00" in s.text and pkg.docs[s.file].is_amendment)
+        q = "До какой даты и времени принимаются заявки?"
+        mentions = [{"sid": old.sid, "quote": old.text, "value": "24.11.2026 10:00"},
+                    {"sid": new.sid, "quote": "Дата и время окончания срока подачи заявок: 27.11.2026 10:00", "value": "27.11.2026 10:00"}]
+        r = solve("P01", q, [{"status": "ответ", "answer": "27.11.2026 10:00", "mentions": mentions}], max_retries=0)
+        self.assertEqual((r.status, r.answer), ("ответ", "27.11.2026 10:00"))
+        self.assertIn("27.11.2026", r.quote)
+        # тот же набор цитат, но ответ по старой редакции — ловим
+        r = solve("P01", q, [{"status": "ответ", "answer": "24.11.2026 10:00", "mentions": mentions}], max_retries=0)
+        self.assertEqual(r.status, "не знаю")
+
+    def test_content_answer_not_replaced_by_negation(self):
+        """Содержательный ответ со словами «не установлено» не превращается в «нет, не установлено»."""
+        a = "Лицензия на техническую защиту конфиденциальной информации; лицензия ФСБ России не требуется"
+        self.assertEqual(C.canonical_yesno(a, "Какие лицензии должны быть у участника?"), a)
+        self.assertEqual(C.canonical_yesno("Не установлено", "Какой размер обеспечения гарантии?"), "нет, не установлено")
+
     def test_discrepancy_detected(self):
         r = solve("P01", "Какой срок выполнения работ, в календарных днях?",
                   [{"status": "ответ", "answer": "60", "mentions": [

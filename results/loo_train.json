@@ -1,0 +1,142 @@
+[
+  {
+    "title": "Итоговая система (всё включено)",
+    "off": [],
+    "n": 71,
+    "correct": 71,
+    "careful": 0,
+    "lies": 0,
+    "index": 100.0,
+    "calls": 84,
+    "tokens": 215940,
+    "model_seconds": 1622.0
+  },
+  {
+    "title": "Проверка цитат",
+    "off": [
+      "quote_check",
+      "quote_repair"
+    ],
+    "n": 71,
+    "correct": 68,
+    "careful": 1,
+    "lies": 2,
+    "index": 93.0,
+    "calls": 90,
+    "tokens": 243275,
+    "model_seconds": 1939.4
+  },
+  {
+    "title": "Проверка чисел и единиц",
+    "off": [
+      "number_check"
+    ],
+    "n": 71,
+    "correct": 71,
+    "careful": 0,
+    "lies": 0,
+    "index": 100.0,
+    "calls": 84,
+    "tokens": 215940,
+    "model_seconds": 1622.0
+  },
+  {
+    "title": "Расчёт кодом",
+    "off": [
+      "calc_in_code"
+    ],
+    "n": 71,
+    "correct": 65,
+    "careful": 5,
+    "lies": 1,
+    "index": 90.1,
+    "calls": 92,
+    "tokens": 248680,
+    "model_seconds": 1962.4
+  },
+  {
+    "title": "Критик изменений извещения",
+    "off": [
+      "amendment_check"
+    ],
+    "n": 71,
+    "correct": 71,
+    "careful": 0,
+    "lies": 0,
+    "index": 100.0,
+    "calls": 84,
+    "tokens": 215940,
+    "model_seconds": 1622.0
+  },
+  {
+    "title": "Критик расхождений",
+    "off": [
+      "discrepancy_check",
+      "discrepancy_llm"
+    ],
+    "n": 71,
+    "correct": 71,
+    "careful": 0,
+    "lies": 0,
+    "index": 100.0,
+    "calls": 82,
+    "tokens": 214868,
+    "model_seconds": 1613.7
+  },
+  {
+    "title": "Критик «да/нет» и отрицаний",
+    "off": [
+      "yesno_check"
+    ],
+    "n": 71,
+    "correct": 71,
+    "careful": 0,
+    "lies": 0,
+    "index": 100.0,
+    "calls": 84,
+    "tokens": 215940,
+    "model_seconds": 1622.0
+  },
+  {
+    "title": "Перепроверка «нет в документах»",
+    "off": [
+      "absent_check"
+    ],
+    "n": 71,
+    "correct": 71,
+    "careful": 0,
+    "lies": 0,
+    "index": 100.0,
+    "calls": 74,
+    "tokens": 152322,
+    "model_seconds": 1510.3
+  },
+  {
+    "title": "Агентный цикл (исправление по замечаниям)",
+    "off": [
+      "max_retries"
+    ],
+    "n": 71,
+    "correct": 71,
+    "careful": 0,
+    "lies": 0,
+    "index": 100.0,
+    "calls": 84,
+    "tokens": 215940,
+    "model_seconds": 1622.0
+  },
+  {
+    "title": "Поиск нужных кусков документа",
+    "off": [
+      "retrieval"
+    ],
+    "n": 71,
+    "correct": 71,
+    "careful": 0,
+    "lies": 0,
+    "index": 100.0,
+    "calls": 84,
+    "tokens": 699053,
+    "model_seconds": 1324.9
+  }
+]
