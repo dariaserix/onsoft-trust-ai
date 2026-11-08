@@ -25,7 +25,7 @@
     "index": 83.1,
     "calls": 72,
     "tokens": 634363,
-    "seconds": 0.1,
+    "seconds": 0.2,
     "model_seconds": 1204.8,
     "model": "openai:qwen3-6-practice"
   },
@@ -34,14 +34,14 @@
     "title": "+ нужные куски документа",
     "description": "Модель видит только относящиеся к вопросу предложения",
     "n": 71,
-    "correct": 68,
+    "correct": 66,
     "careful": 0,
-    "lies": 3,
-    "index": 91.5,
-    "calls": 72,
-    "tokens": 153578,
-    "seconds": 0.3,
-    "model_seconds": 1569.6,
+    "lies": 5,
+    "index": 85.9,
+    "calls": 73,
+    "tokens": 162745,
+    "seconds": 0.4,
+    "model_seconds": 1047.6,
     "model": "openai:qwen3-6-practice"
   },
   {
@@ -49,14 +49,14 @@
     "title": "+ проверка цитат",
     "description": "Код проверяет, что цитата дословно есть в документе; нет — «не знаю»",
     "n": 71,
-    "correct": 69,
+    "correct": 66,
     "careful": 0,
-    "lies": 2,
-    "index": 94.4,
-    "calls": 72,
-    "tokens": 153578,
+    "lies": 5,
+    "index": 85.9,
+    "calls": 73,
+    "tokens": 162745,
     "seconds": 0.2,
-    "model_seconds": 1569.6,
+    "model_seconds": 1047.6,
     "model": "openai:qwen3-6-practice"
   },
   {
@@ -68,10 +68,10 @@
     "careful": 0,
     "lies": 0,
     "index": 100.0,
-    "calls": 72,
-    "tokens": 153578,
+    "calls": 73,
+    "tokens": 162745,
     "seconds": 0.2,
-    "model_seconds": 1569.6,
+    "model_seconds": 1047.6,
     "model": "openai:qwen3-6-practice"
   },
   {
@@ -83,10 +83,10 @@
     "careful": 0,
     "lies": 0,
     "index": 100.0,
-    "calls": 72,
-    "tokens": 153578,
+    "calls": 73,
+    "tokens": 162745,
     "seconds": 0.2,
-    "model_seconds": 1569.6,
+    "model_seconds": 1047.6,
     "model": "openai:qwen3-6-practice"
   },
   {
@@ -98,10 +98,10 @@
     "careful": 0,
     "lies": 0,
     "index": 100.0,
-    "calls": 74,
-    "tokens": 154650,
+    "calls": 75,
+    "tokens": 163817,
     "seconds": 0.2,
-    "model_seconds": 1577.9,
+    "model_seconds": 1055.9,
     "model": "openai:qwen3-6-practice"
   },
   {
@@ -113,10 +113,10 @@
     "careful": 0,
     "lies": 0,
     "index": 100.0,
-    "calls": 75,
-    "tokens": 155160,
+    "calls": 76,
+    "tokens": 164327,
     "seconds": 0.2,
-    "model_seconds": 1585.2,
+    "model_seconds": 1063.2,
     "model": "openai:qwen3-6-practice"
   },
   {
@@ -128,10 +128,10 @@
     "careful": 0,
     "lies": 0,
     "index": 100.0,
-    "calls": 85,
-    "tokens": 218778,
+    "calls": 86,
+    "tokens": 227945,
     "seconds": 0.2,
-    "model_seconds": 1696.9,
+    "model_seconds": 1174.9,
     "model": "openai:qwen3-6-practice"
   },
   {
@@ -143,10 +143,10 @@
     "careful": 0,
     "lies": 0,
     "index": 100.0,
-    "calls": 85,
-    "tokens": 218778,
+    "calls": 86,
+    "tokens": 227945,
     "seconds": 0.2,
-    "model_seconds": 1696.9,
+    "model_seconds": 1174.9,
     "model": "openai:qwen3-6-practice"
   },
   {
@@ -158,10 +158,10 @@
     "careful": 0,
     "lies": 0,
     "index": 100.0,
-    "calls": 146,
-    "tokens": 249196,
-    "seconds": 6.2,
-    "model_seconds": 1930.6,
+    "calls": 147,
+    "tokens": 258224,
+    "seconds": 7.9,
+    "model_seconds": 1394.2,
     "model": "openai:qwen3-6-practice"
   }
 ]

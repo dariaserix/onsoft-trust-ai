@@ -1,13 +1,13 @@
 {
-  "calls": 90,
+  "calls": 92,
   "cached": 86,
-  "prompt_tokens": 160431,
-  "completion_tokens": 80238,
-  "seconds": 329.96290612220764,
-  "model_seconds": 2080.6529061222063,
+  "prompt_tokens": 176284,
+  "completion_tokens": 79527,
+  "seconds": 212.0971076488495,
+  "model_seconds": 1388.3171076488495,
   "questions": 71,
-  "wall_seconds": 322.8,
+  "wall_seconds": 124.7,
   "model": "openai:qwen3-6-practice",
   "config": "loo_train_quote_check_quote_repair",
-  "started": "2026-11-08 18:23:29"
+  "started": "2026-11-09 00:48:42"
 }

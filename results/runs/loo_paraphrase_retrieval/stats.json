@@ -9,5 +9,5 @@
   "wall_seconds": 0.2,
   "model": "openai:qwen3-6-practice",
   "config": "loo_paraphrase_retrieval",
-  "started": "2026-11-08 18:29:53"
+  "started": "2026-11-09 01:02:32"
 }

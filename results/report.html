@@ -69,13 +69,13 @@ footer { color:var(--muted); font-size:13px; margin-top:40px }
 </div>
 <div class="bar-row">
   <div class="bar-label"><b>+ нужные куски документа</b><span>Модель видит только относящиеся к вопросу предложения</span></div>
-  <div class="bar"><div class="seg ok" style="flex:68" title="Верно: 68">68</div><div class="seg lie" style="flex:3" title="Обман: 3"></div></div>
-  <div class="bar-idx ">91.5</div>
+  <div class="bar"><div class="seg ok" style="flex:66" title="Верно: 66">66</div><div class="seg lie" style="flex:5" title="Обман: 5">5</div></div>
+  <div class="bar-idx ">85.9</div>
 </div>
 <div class="bar-row">
   <div class="bar-label"><b>+ проверка цитат</b><span>Код проверяет, что цитата дословно есть в документе; нет — «не знаю»</span></div>
-  <div class="bar"><div class="seg ok" style="flex:69" title="Верно: 69">69</div><div class="seg lie" style="flex:2" title="Обман: 2"></div></div>
-  <div class="bar-idx ">94.4</div>
+  <div class="bar"><div class="seg ok" style="flex:66" title="Верно: 66">66</div><div class="seg lie" style="flex:5" title="Обман: 5">5</div></div>
+  <div class="bar-idx ">85.9</div>
 </div>
 <div class="bar-row">
   <div class="bar-label"><b>+ проверка чисел и расчёт кодом</b><span>Число из ответа должно быть в цитате; проценты и суммы считает код</span></div>
@@ -133,14 +133,14 @@ footer { color:var(--muted); font-size:13px; margin-top:40px }
   <div><h2>Как обманывала модель «как есть»</h2><div class="card"><table>
     <tr><th>Вид обмана</th><th class="num">Случаев</th></tr><tr><td>цитаты нет в документах</td><td class="num">2</td></tr></table></div>
     <h2>Вклад каждого шага</h2><div class="card"><table>
-    <tr><th>Шаг</th><th class="num">Индекс</th><th class="num">Обманов</th></tr><tr><td>Правила в промпте</td><td class="num neg">-11.3</td><td class="num">+4</td></tr><tr><td>+ нужные куски документа</td><td class="num pos">+8.4</td><td class="num">-3</td></tr><tr><td>+ проверка цитат</td><td class="num pos">+2.9</td><td class="num">-1</td></tr><tr><td>+ проверка чисел и расчёт кодом</td><td class="num pos">+5.6</td><td class="num">-2</td></tr><tr><td>+ критик изменений извещения</td><td class="num ">+0.0</td><td class="num">+0</td></tr><tr><td>+ критик расхождений</td><td class="num ">+0.0</td><td class="num">+0</td></tr><tr><td>+ критик «да/нет» и отрицаний</td><td class="num ">+0.0</td><td class="num">+0</td></tr><tr><td>+ перепроверка «нет в документах»</td><td class="num ">+0.0</td><td class="num">+0</td></tr><tr><td>+ агентный цикл</td><td class="num ">+0.0</td><td class="num">+0</td></tr><tr><td>+ ИИ-критик</td><td class="num ">+0.0</td><td class="num">+0</td></tr></table></div></div>
+    <tr><th>Шаг</th><th class="num">Индекс</th><th class="num">Обманов</th></tr><tr><td>Правила в промпте</td><td class="num neg">-11.3</td><td class="num">+4</td></tr><tr><td>+ нужные куски документа</td><td class="num pos">+2.8</td><td class="num">-1</td></tr><tr><td>+ проверка цитат</td><td class="num ">+0.0</td><td class="num">+0</td></tr><tr><td>+ проверка чисел и расчёт кодом</td><td class="num pos">+14.1</td><td class="num">-5</td></tr><tr><td>+ критик изменений извещения</td><td class="num ">+0.0</td><td class="num">+0</td></tr><tr><td>+ критик расхождений</td><td class="num ">+0.0</td><td class="num">+0</td></tr><tr><td>+ критик «да/нет» и отрицаний</td><td class="num ">+0.0</td><td class="num">+0</td></tr><tr><td>+ перепроверка «нет в документах»</td><td class="num ">+0.0</td><td class="num">+0</td></tr><tr><td>+ агентный цикл</td><td class="num ">+0.0</td><td class="num">+0</td></tr><tr><td>+ ИИ-критик</td><td class="num ">+0.0</td><td class="num">+0</td></tr></table></div></div>
 </div>
 
 <h2>Режим модели: точность и скорость</h2>
 <p class="sub">Та же модель, меняется только режим «рассуждать перед ответом». Индекс: модель как есть → наша система.</p>
 <div class="card"><table>
-  <tr><th>Режим</th><th class="num">Учебный набор</th><th class="num">Другие формулировки</th><th class="num">Секунд модели на вопрос</th></tr>
-  <tr><td>с рассуждениями (итоговый режим)</td><td class="num">94.4 → <b>100.0</b></td><td class="num">94.4 → <b>100.0</b></td><td class="num">16.5</td></tr><tr><td>без рассуждений</td><td class="num">77.5 → <b>100.0</b></td><td class="num">77.5 → <b>100.0</b></td><td class="num">3.9</td></tr>
+  <tr><th>Режим</th><th class="num">Учебный набор</th><th class="num">Другие формулировки</th><th class="num">Новые типы вопросов</th><th class="num">Секунд модели на вопрос</th></tr>
+  <tr><td>с рассуждениями (итоговый режим)</td><td class="num">94.4 → <b>100.0</b></td><td class="num">94.4 → <b>100.0</b></td><td class="num">91.7 → <b>100.0</b></td><td class="num">16.5</td></tr><tr><td>без рассуждений</td><td class="num">77.5 → <b>100.0</b></td><td class="num">77.5 → <b>100.0</b></td><td class="num">91.7 → <b>100.0</b></td><td class="num">3.6</td></tr>
 </table></div>
 
 <h2>Работает ли на том, на чём её не настраивали</h2>
@@ -152,14 +152,14 @@ footer { color:var(--muted); font-size:13px; margin-top:40px }
 <td class="num">94.4 <span class="lie-t">(2 обм.)</span></td>
 <td class="num"><b>100.0</b> <span class="lie-t">(0 обм.)</span></td></tr><tr><td><b>Трудные файлы</b><br><span class="note">кодировка Windows-1251, пустой файл, спрятанная инструкция для ИИ, документ раздут в 15 раз</span></td><td class="num">13</td>
 <td class="num">100.0 <span class="lie-t">(0 обм.)</span></td>
-<td class="num"><b>100.0</b> <span class="lie-t">(0 обм.)</span></td></tr><tr><td><b>Новые типы вопросов</b><br><span class="note">24 вопроса о том, о чём учебный набор не спрашивает (заказчик, пени, таблицы, числа словами, новые расчёты и ловушки); ответы выписаны вручную</span></td><td class="num">24</td>
+<td class="num"><b>100.0</b> <span class="lie-t">(0 обм.)</span></td></tr><tr><td><b>Новые типы вопросов</b><br><span class="note">24 вопроса о том, о чём учебный набор не спрашивает (заказчик, пени, таблицы, числа словами, новые расчёты и ловушки); ответы выписаны вручную. Первый прогон системы — 91.7 (0 обманов, 2 «не знаю»), после общих исправлений (числа словами, таблицы) — 100</span></td><td class="num">24</td>
 <td class="num">91.7 <span class="lie-t">(1 обм.)</span></td>
 <td class="num"><b>100.0</b> <span class="lie-t">(0 обм.)</span></td></tr>
 </table></div>
 
 <h2>Вклад каждой проверки</h2>
 <p class="sub">Выключаем одну проверку в итоговой системе и смотрим, насколько упадёт индекс доверия. Ноль — на этих вопросах проверка не понадобилась.</p>
-<div class="card"><table><tr><th>Что выключили</th><th class="num">учебный набор</th><th class="num">другие формулировки</th></tr><tr><td>без: Проверка цитат</td><td class="num"><span class="neg">-7.0</span> <span class=lie-t>(+2 обм.)</span></td><td class="num"><span class="neg">-11.3</span> <span class=lie-t>(+4 обм.)</span></td></tr><tr><td>без: Проверка чисел и единиц</td><td class="num"><span class="">+0.0</span></td><td class="num"><span class="">+0.0</span></td></tr><tr><td>без: Расчёт кодом</td><td class="num"><span class="neg">-9.9</span> <span class=lie-t>(+1 обм.)</span></td><td class="num"><span class="neg">-11.3</span> <span class=lie-t>(+2 обм.)</span></td></tr><tr><td>без: Критик изменений извещения</td><td class="num"><span class="">+0.0</span></td><td class="num"><span class="">+0.0</span></td></tr><tr><td>без: Критик расхождений</td><td class="num"><span class="">+0.0</span></td><td class="num"><span class="">+0.0</span></td></tr><tr><td>без: Критик «да/нет» и отрицаний</td><td class="num"><span class="">+0.0</span></td><td class="num"><span class="">+0.0</span></td></tr><tr><td>без: Перепроверка «нет в документах»</td><td class="num"><span class="">+0.0</span></td><td class="num"><span class="">+0.0</span></td></tr><tr><td>без: Агентный цикл (исправление по замечаниям)</td><td class="num"><span class="">+0.0</span></td><td class="num"><span class="">+0.0</span></td></tr><tr><td>без: Поиск нужных кусков документа</td><td class="num"><span class="">+0.0</span></td><td class="num"><span class="neg">-1.4</span></td></tr></table></div>
+<div class="card"><table><tr><th>Что выключили</th><th class="num">учебный набор</th><th class="num">другие формулировки</th></tr><tr><td>без: Проверка цитат</td><td class="num"><span class="neg">-1.4</span></td><td class="num"><span class="neg">-1.4</span></td></tr><tr><td>без: Проверка чисел и единиц</td><td class="num"><span class="">+0.0</span></td><td class="num"><span class="">+0.0</span></td></tr><tr><td>без: Расчёт кодом</td><td class="num"><span class="neg">-14.1</span> <span class=lie-t>(+4 обм.)</span></td><td class="num"><span class="neg">-12.7</span> <span class=lie-t>(+3 обм.)</span></td></tr><tr><td>без: Критик изменений извещения</td><td class="num"><span class="">+0.0</span></td><td class="num"><span class="">+0.0</span></td></tr><tr><td>без: Критик расхождений</td><td class="num"><span class="">+0.0</span></td><td class="num"><span class="">+0.0</span></td></tr><tr><td>без: Критик «да/нет» и отрицаний</td><td class="num"><span class="">+0.0</span></td><td class="num"><span class="">+0.0</span></td></tr><tr><td>без: Перепроверка «нет в документах»</td><td class="num"><span class="">+0.0</span></td><td class="num"><span class="">+0.0</span></td></tr><tr><td>без: Агентный цикл (исправление по замечаниям)</td><td class="num"><span class="">+0.0</span></td><td class="num"><span class="">+0.0</span></td></tr><tr><td>без: Поиск нужных кусков документа</td><td class="num"><span class="">+0.0</span></td><td class="num"><span class="neg">-1.4</span></td></tr></table></div>
 
 <h2>Обманы, которые система поймала</h2>
 <article class="case">
@@ -183,6 +183,16 @@ footer { color:var(--muted); font-size:13px; margin-top:40px }
   <ul class="caught"><li><b>Критик «да/нет»:</b> Модель ответила «не установлено», сославшись на другой параметр: цитата касается обеспечения гарантийных обязательств (финансового/материального обеспечения), а не самого срока гарантии</li></ul>
   <p class="truth">Правильно: нет в документах </p>
 </article><article class="case">
+  <div class="case-q"><span class="pill">P06-03</span> Какой размер обеспечения исполнения контракта, в процентах? <span class="src">без рассуждений, учебный набор</span></div>
+  <div class="case-grid">
+    <div><h4>Было (модель без проверок)</h4><p>ответ: <b>10 %</b></p></div>
+    <div><h4>Модель сначала ответила</h4><p>ответ: <b>10</b></p></div>
+    <div><h4>Итог системы</h4><p>ответ: <b>10</b>
+      <span class="verdict v-ok">верно</span></p></div>
+  </div>
+  <ul class="caught"><li><b>Критик цитат:</b> Модель исказила цитату («2.2. Обеспечение исполнения контракта устанавливается в размере 10 % о»). Взят точный текст фрагмента S22.</li></ul>
+  <p class="truth">Правильно: ответ 10</p>
+</article><article class="case">
   <div class="case-q"><span class="pill">P02-09</span> Сколько месяцев действует гарантия на результаты работ? <span class="src">без рассуждений, другие формулировки</span></div>
   <div class="case-grid">
     <div><h4>Было (модель без проверок)</h4><p>нет в документах: <b>В предоставленных документах не указан срок действия гарантии на результаты работ. В проекте контракта (пункт 3.7) указано, что обеспечение гарантийных обязательств не требуется, однако конкретный срок гарантии не прописан.</b></p></div>
@@ -192,12 +202,22 @@ footer { color:var(--muted); font-size:13px; margin-top:40px }
   </div>
   <ul class="caught"><li><b>Критик «да/нет»:</b> Модель ответила «не установлено», сославшись на другой параметр: цитата касается обеспечения гарантийных обязательств (финансового обеспечения), а не срока действия гарантии</li></ul>
   <p class="truth">Правильно: нет в документах </p>
+</article><article class="case">
+  <div class="case-q"><span class="pill">P06-03</span> Обеспечение исполнения контракта составляет сколько процентов? <span class="src">без рассуждений, другие формулировки</span></div>
+  <div class="case-grid">
+    <div><h4>Было (модель без проверок)</h4><p>ответ: <b>10 %</b></p></div>
+    <div><h4>Модель сначала ответила</h4><p>ответ: <b>10</b></p></div>
+    <div><h4>Итог системы</h4><p>ответ: <b>10</b>
+      <span class="verdict v-ok">верно</span></p></div>
+  </div>
+  <ul class="caught"><li><b>Критик цитат:</b> Модель исказила цитату («2.2. Обеспечение исполнения контракта устанавливается в размере 10 % о»). Взят точный текст фрагмента S22.</li></ul>
+  <p class="truth">Правильно: ответ 10</p>
 </article>
 
 <h2>Стоимость</h2>
 <div class="card"><table>
   <tr><th>Шаг</th><th class="num">Запросов к модели</th><th class="num">Токенов</th><th class="num">Время ответов модели, с</th></tr>
-  <tr><td>Было: модель «как есть»</td><td class="num">71</td><td class="num">458806</td><td class="num">1111</td></tr><tr><td>Правила в промпте</td><td class="num">72</td><td class="num">634363</td><td class="num">1205</td></tr><tr><td>+ нужные куски документа</td><td class="num">72</td><td class="num">153578</td><td class="num">1570</td></tr><tr><td>+ проверка цитат</td><td class="num">72</td><td class="num">153578</td><td class="num">1570</td></tr><tr><td>+ проверка чисел и расчёт кодом</td><td class="num">72</td><td class="num">153578</td><td class="num">1570</td></tr><tr><td>+ критик изменений извещения</td><td class="num">72</td><td class="num">153578</td><td class="num">1570</td></tr><tr><td>+ критик расхождений</td><td class="num">74</td><td class="num">154650</td><td class="num">1578</td></tr><tr><td>+ критик «да/нет» и отрицаний</td><td class="num">75</td><td class="num">155160</td><td class="num">1585</td></tr><tr><td>+ перепроверка «нет в документах»</td><td class="num">85</td><td class="num">218778</td><td class="num">1697</td></tr><tr><td>+ агентный цикл</td><td class="num">85</td><td class="num">218778</td><td class="num">1697</td></tr><tr><td>+ ИИ-критик</td><td class="num">146</td><td class="num">249196</td><td class="num">1931</td></tr>
+  <tr><td>Было: модель «как есть»</td><td class="num">71</td><td class="num">458806</td><td class="num">1111</td></tr><tr><td>Правила в промпте</td><td class="num">72</td><td class="num">634363</td><td class="num">1205</td></tr><tr><td>+ нужные куски документа</td><td class="num">73</td><td class="num">162745</td><td class="num">1048</td></tr><tr><td>+ проверка цитат</td><td class="num">73</td><td class="num">162745</td><td class="num">1048</td></tr><tr><td>+ проверка чисел и расчёт кодом</td><td class="num">73</td><td class="num">162745</td><td class="num">1048</td></tr><tr><td>+ критик изменений извещения</td><td class="num">73</td><td class="num">162745</td><td class="num">1048</td></tr><tr><td>+ критик расхождений</td><td class="num">75</td><td class="num">163817</td><td class="num">1056</td></tr><tr><td>+ критик «да/нет» и отрицаний</td><td class="num">76</td><td class="num">164327</td><td class="num">1063</td></tr><tr><td>+ перепроверка «нет в документах»</td><td class="num">86</td><td class="num">227945</td><td class="num">1175</td></tr><tr><td>+ агентный цикл</td><td class="num">86</td><td class="num">227945</td><td class="num">1175</td></tr><tr><td>+ ИИ-критик</td><td class="num">147</td><td class="num">258224</td><td class="num">1394</td></tr>
 </table></div>
 <footer>Замер официальным check.py организатора на одной и той же модели. Система не видит правильных ответов: их использует только оценщик.</footer>
 </main></body></html>

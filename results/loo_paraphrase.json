@@ -7,9 +7,9 @@
     "careful": 0,
     "lies": 0,
     "index": 100.0,
-    "calls": 84,
-    "tokens": 210156,
-    "model_seconds": 1086.6
+    "calls": 87,
+    "tokens": 224460,
+    "model_seconds": 1321.7
   },
   {
     "title": "Проверка цитат",
@@ -18,13 +18,13 @@
       "quote_repair"
     ],
     "n": 71,
-    "correct": 67,
-    "careful": 0,
-    "lies": 4,
-    "index": 88.7,
-    "calls": 89,
-    "tokens": 222524,
-    "model_seconds": 1257.0
+    "correct": 70,
+    "careful": 1,
+    "lies": 0,
+    "index": 98.6,
+    "calls": 93,
+    "tokens": 253313,
+    "model_seconds": 1568.0
   },
   {
     "title": "Проверка чисел и единиц",
@@ -36,9 +36,9 @@
     "careful": 0,
     "lies": 0,
     "index": 100.0,
-    "calls": 84,
-    "tokens": 210156,
-    "model_seconds": 1086.6
+    "calls": 87,
+    "tokens": 224460,
+    "model_seconds": 1321.7
   },
   {
     "title": "Расчёт кодом",
@@ -47,12 +47,12 @@
     ],
     "n": 71,
     "correct": 65,
-    "careful": 4,
-    "lies": 2,
-    "index": 88.7,
-    "calls": 90,
-    "tokens": 237354,
-    "model_seconds": 1642.1
+    "careful": 3,
+    "lies": 3,
+    "index": 87.3,
+    "calls": 96,
+    "tokens": 274377,
+    "model_seconds": 1807.2
   },
   {
     "title": "Критик изменений извещения",
@@ -64,9 +64,9 @@
     "careful": 0,
     "lies": 0,
     "index": 100.0,
-    "calls": 84,
-    "tokens": 210156,
-    "model_seconds": 1086.6
+    "calls": 87,
+    "tokens": 224460,
+    "model_seconds": 1321.7
   },
   {
     "title": "Критик расхождений",
@@ -79,9 +79,9 @@
     "careful": 0,
     "lies": 0,
     "index": 100.0,
-    "calls": 82,
-    "tokens": 209155,
-    "model_seconds": 1079.6
+    "calls": 85,
+    "tokens": 223459,
+    "model_seconds": 1314.7
   },
   {
     "title": "Критик «да/нет» и отрицаний",
@@ -93,9 +93,9 @@
     "careful": 0,
     "lies": 0,
     "index": 100.0,
-    "calls": 83,
-    "tokens": 209791,
-    "model_seconds": 1084.1
+    "calls": 85,
+    "tokens": 223769,
+    "model_seconds": 1317.6
   },
   {
     "title": "Перепроверка «нет в документах»",
@@ -107,9 +107,9 @@
     "careful": 0,
     "lies": 0,
     "index": 100.0,
-    "calls": 74,
-    "tokens": 146238,
-    "model_seconds": 1004.5
+    "calls": 77,
+    "tokens": 160542,
+    "model_seconds": 1239.6
   },
   {
     "title": "Агентный цикл (исправление по замечаниям)",
@@ -121,9 +121,9 @@
     "careful": 0,
     "lies": 0,
     "index": 100.0,
-    "calls": 84,
-    "tokens": 210156,
-    "model_seconds": 1086.6
+    "calls": 87,
+    "tokens": 224460,
+    "model_seconds": 1321.7
   },
   {
     "title": "Поиск нужных кусков документа",

@@ -179,7 +179,8 @@ def build_report(results_dir: Path, data_dir: Path) -> Path:
         cells = ""
         for bas, fin in ((f"{pre}train_00_baseline" if pre else base["step"], f"{pre}train_final" if pre else final["step"]),
                          (f"{pre}paraphrase_00_baseline" if pre else "para_00_baseline",
-                          f"{pre}paraphrase_final" if pre else "para_final")):
+                          f"{pre}paraphrase_final" if pre else "para_final"),
+                         (f"{pre}newtypes_00_baseline", f"{pre}newtypes_final")):
             b0, f0 = sc(bas), sc(fin)
             cells += (f'<td class="num">{b0.get("index")} → <b>{f0.get("index")}</b></td>' if b0 and f0 else "<td></td>")
         st = stat(f"{pre}train_final" if pre else final["step"])
@@ -195,7 +196,8 @@ def build_report(results_dir: Path, data_dir: Path) -> Path:
             ("Те же закупки, вопросы другими словами", "71 вопрос переформулирован вручную", "para_00_baseline", "para_final"),
             ("Трудные файлы", "кодировка Windows-1251, пустой файл, спрятанная инструкция для ИИ, документ раздут в 15 раз", "hard_00_baseline", "hard_final"),
             ("Новые типы вопросов", "24 вопроса о том, о чём учебный набор не спрашивает (заказчик, пени, таблицы, числа "
-             "словами, новые расчёты и ловушки); ответы выписаны вручную", "newtypes_00_baseline", "newtypes_final")):
+             "словами, новые расчёты и ловушки); ответы выписаны вручную. Первый прогон системы — 91.7 (0 обманов, 2 «не знаю»), "
+             "после общих исправлений (числа словами, таблицы) — 100", "newtypes_00_baseline", "newtypes_final")):
         b0, f0 = sc(bas), sc(fin)
         if b0 and f0:
             gen_rows.append(f'''<tr><td><b>{E(label)}</b><br><span class="note">{E(note)}</span></td><td class="num">{f0.get("n")}</td>
@@ -313,7 +315,7 @@ footer {{ color:var(--muted); font-size:13px; margin-top:40px }}
 <h2>Режим модели: точность и скорость</h2>
 <p class="sub">Та же модель, меняется только режим «рассуждать перед ответом». Индекс: модель как есть → наша система.</p>
 <div class="card"><table>
-  <tr><th>Режим</th><th class="num">Учебный набор</th><th class="num">Другие формулировки</th><th class="num">Секунд модели на вопрос</th></tr>
+  <tr><th>Режим</th><th class="num">Учебный набор</th><th class="num">Другие формулировки</th><th class="num">Новые типы вопросов</th><th class="num">Секунд модели на вопрос</th></tr>
   {"".join(mode_rows)}
 </table></div>
 
