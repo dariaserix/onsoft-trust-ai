@@ -41,6 +41,8 @@ a { color:var(--primary-ink); text-underline-offset:3px }
 .top { display:flex; justify-content:space-between; align-items:flex-start; gap:24px; flex-wrap:wrap; margin-bottom:32px }
 h1 { font-family:var(--font-head); font-weight:700; font-size:clamp(32px, 4vw, 48px); line-height:1.1; letter-spacing:-.01em; color:var(--ink-strong); margin:0 0 12px }
 .lead { color:var(--muted); font-size:18px; line-height:1.55; margin:0; max-width:60ch }
+h1, h2, .answer, .empty b { text-wrap:balance }
+p, .check span, .raw, li b { text-wrap:pretty }
 .btn-ghost { display:inline-flex; align-items:center; gap:8px; padding:12px 20px; border-radius:8px; white-space:nowrap;
   background:rgba(255,255,255,.84); border:1px solid rgba(0,142,207,.26); color:var(--primary-ink); font-weight:600; text-decoration:none;
   transition:background .2s, border-color .2s }
@@ -205,6 +207,23 @@ const ICON = {
   dash:'<path d="M5 12h14"/>',
 };
 const svg = (name, sw = 2) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[name]}</svg>`;
+// Типографика: короткие предлоги, союзы и частицы не остаются в конце строки — они «приклеены» к следующему
+// слову неразрывным пробелом; тире не начинает строку. Применяется ко всему тексту страницы, включая ответы.
+const GLUE = "в|во|на|над|под|с|со|к|ко|у|о|об|обо|от|до|из|изо|за|по|при|про|без|для|через|перед|между|около|" +
+  "и|а|но|да|или|либо|ни|не|что|чтобы|как|когда|если|то|же|ли|бы|это|эта|этот|эти|его|её|их|кто|где|все|всё|так|уже|" +
+  "который|которая|которое|которые|которого|которой|которых|которым|котором|которую";
+const GLUE_RE = new RegExp(String.raw`(^|[\s(«"„])(${GLUE})[ \t\r\n]+(?=\S)`, "giu");
+const NBSP = " ";
+function typo(t) {
+  let prev;
+  do { prev = t; t = t.replace(GLUE_RE, (m, pre, w) => pre + w + NBSP); } while (t !== prev);
+  return t.replace(/\s+([—–])/g, NBSP + "$1");
+}
+function typoTree(root) {
+  const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: n =>
+    n.parentElement && n.parentElement.closest("script,style,textarea") ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT });
+  for (let n; (n = w.nextNode());) { const v = typo(n.nodeValue); if (v !== n.nodeValue) n.nodeValue = v; }
+}
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let DATA = {};
@@ -269,6 +288,7 @@ $("go").onclick = async () => {
   $("go").disabled = true; $("go").innerHTML = `<span class="spin" aria-hidden="true"></span>Думаю и проверяю…`;
   $("out").innerHTML = `<section class="card empty">${svg("search", 1.6)}<div><b>Ищу ответ и проверяю его</b>
     <p>Обычно 10–30 секунд: модель рассуждает, затем код сверяет цитату, числа и расчёты.</p></div></section>`;
+  typoTree($("out"));
   try {
     const r = await fetch("/api/ask", { method:"POST", headers:{"Content-Type":"application/json"},
       body: JSON.stringify({ dataset:$("ds").value, package:$("pk").value, question:q }) });
@@ -287,11 +307,14 @@ $("go").onclick = async () => {
         <p class="meta">Запросов к модели: ${d.calls}</p>
       </section>
       <section class="card appear" aria-labelledby="trace-h"><h2 id="trace-h">Как система проверяла ответ</h2>${renderTrace(d.trace)}</section>`;
+    typoTree($("out"));
   } catch (e) {
     $("out").innerHTML = `<section class="card error">${svg("alert")}<div><b>Не получилось получить ответ</b>
       <span>${esc(e.message)}. Проверьте интернет и повторите вопрос — если сервер модели перегружен, система подождёт и повторит.</span></div></section>`;
+    typoTree($("out"));
   } finally { $("go").disabled = false; $("go").textContent = "Спросить"; }
 };
+typoTree(document.body);
 init();
 </script>
 </body></html>

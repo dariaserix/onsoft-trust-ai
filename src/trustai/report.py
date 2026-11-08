@@ -1,10 +1,11 @@
-"""Дашборд «было/стало»: один самодостаточный HTML-файл (без интернета и библиотек).
+"""Дашборд «было/стало»: один HTML-файл без библиотек (шрифты из Google Fonts; без интернета — системные).
 
 Источник данных: results/ladder.json и папки results/runs/<шаг>/ (answers.csv, result.csv, trace.jsonl, stats.json).
 """
 import csv
 import html
 import json
+import re
 from collections import Counter, defaultdict
 from pathlib import Path
 
@@ -24,6 +25,39 @@ CRITIC_NAMES = {
     "discrepancy": "Критик расхождений", "yesno": "Критик «да/нет»", "absent": "Перепроверка «нет в документах»",
     "llm_critic": "ИИ-критик", "format": "Формат ответа", "injection": "Защита от инструкций в тексте",
 }
+
+
+# Типографика: короткие предлоги, союзы и частицы не остаются в конце строки — «приклеиваем» их к следующему
+# слову неразрывным пробелом; тире не начинает строку. Так же работает демо (app/index.html).
+_GLUE = ("в|во|на|над|под|с|со|к|ко|у|о|об|обо|от|до|из|изо|за|по|при|про|без|для|через|перед|между|около|"
+         "и|а|но|да|или|либо|ни|не|что|чтобы|как|когда|если|то|же|ли|бы|это|эта|этот|эти|его|её|их|кто|где|все|всё|так|уже|"
+         "который|которая|которое|которые|которого|которой|которых|которым|котором|которую")
+_GLUE_RE = re.compile(r"(^|[\s(«\"„])(" + _GLUE + r")[ \t\r\n]+(?=\S)", re.IGNORECASE)
+_NBSP = "\u00a0"
+
+
+def typo(text: str) -> str:
+    prev = None
+    while prev != text:
+        prev = text
+        text = _GLUE_RE.sub(lambda m: m.group(1) + m.group(2) + _NBSP, text)
+    return re.sub(r"\s+([—–])", _NBSP + r"\1", text)
+
+
+def typo_html(doc: str) -> str:
+    """Применяет typo() только к видимому тексту: теги, <style> и <script> не трогаем."""
+    out, skip = [], False
+    for part in re.split(r"(<[^>]+>)", doc):
+        if part.startswith("<"):
+            low = part.lower()
+            if low.startswith(("<style", "<script")):
+                skip = True
+            elif low.startswith(("</style", "</script")):
+                skip = False
+            out.append(part)
+        else:
+            out.append(part if skip else typo(part))
+    return "".join(out)
 
 
 def _read_csv(p):
@@ -243,46 +277,68 @@ def build_report(results_dir: Path, data_dir: Path) -> Path:
     html_doc = f"""<!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ИИ без обмана</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
 <style>
-:root {{ --bg:#f6f7f9; --card:#fff; --ink:#14171f; --muted:#5d6472; --line:#e3e6ec;
-  --ok:#1f9d63; --unk:#b7bdc8; --lie:#d9443b; --accent:#2f5bea; }}
-@media (prefers-color-scheme: dark) {{ :root {{ --bg:#0f1115; --card:#181b22; --ink:#e9ecf2; --muted:#9aa2b1;
-  --line:#2a2f3a; --unk:#4a5160; }} }}
+/* Фирменный стиль ОНСОФТ (on-soft.ru, светлая тема); без интернета шрифты заменяются системными */
+:root {{ --bg:#f4f9fc; --card:#fff; --surface:#eef5fa; --ink:#102033; --ink-strong:#0f2237; --muted:#5b7086; --navy:#16324a;
+  --primary:#008ecf; --primary-ink:#0072a8; --primary-soft:#e0f1fb; --line:#d8e4ee; --line-strong:#c2d2e0;
+  --ok:#0072a8; --unk:#c9d6e2; --lie:#b8481a; --pos:#0f7b5f;
+  --shadow:0 24px 64px rgba(16,32,51,.08), 0 2px 6px rgba(16,32,51,.04);
+  --font-text:"Inter", ui-sans-serif, system-ui, "Segoe UI", sans-serif; --font-head:"Montserrat", "Inter", ui-sans-serif, system-ui, sans-serif;
+  color-scheme:light; }}
 * {{ box-sizing:border-box }}
-body {{ margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif }}
-main {{ max-width:1080px; margin:0 auto; padding:32px 16px 64px }}
-h1 {{ font-size:32px; margin:0 0 4px }} h2 {{ font-size:22px; margin:40px 0 12px }} h4 {{ margin:0 0 4px; font-size:13px; color:var(--muted); font-weight:600 }}
-.sub {{ color:var(--muted); margin:0 0 24px }}
-.card {{ background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px }}
-.kpis {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px }}
-.kpi-label {{ color:var(--muted); font-size:14px }} .kpi-val {{ font-size:40px; font-weight:700; line-height:1.1 }}
-.kpi-delta {{ font-size:14px; color:var(--muted) }} .pos {{ color:var(--ok) }} .neg {{ color:var(--lie) }}
-.explain {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; margin-top:12px }}
-.explain div {{ font-size:14px; color:var(--muted) }} .explain b {{ color:var(--ink) }}
-.legend {{ display:flex; gap:16px; font-size:14px; color:var(--muted); margin-bottom:12px; flex-wrap:wrap }}
-.dot {{ display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:6px }}
-.bar-row {{ display:grid; grid-template-columns:minmax(160px,300px) 1fr 52px; gap:12px; align-items:center; padding:8px 0; border-top:1px solid var(--line) }}
-.bar-label b {{ display:block; font-size:15px }} .bar-label span {{ display:block; font-size:12px; color:var(--muted) }}
-.bar {{ display:flex; height:26px; border-radius:6px; overflow:hidden; background:var(--line) }}
-.seg {{ display:flex; align-items:center; justify-content:center; color:#fff; font-size:12px; font-weight:600 }}
-.ok {{ background:var(--ok) }} .unk {{ background:var(--unk) }} .lie {{ background:var(--lie) }}
-.bar-idx {{ font-weight:700; text-align:right; font-variant-numeric:tabular-nums }}
-table {{ width:100%; border-collapse:collapse; font-size:15px }} th,td {{ text-align:left; padding:8px 6px; border-bottom:1px solid var(--line) }}
-th {{ color:var(--muted); font-weight:600; font-size:13px }} .num {{ text-align:right; font-variant-numeric:tabular-nums }}
+html {{ scrollbar-color:var(--line-strong) transparent }}
+::selection {{ background:rgba(0,142,207,.18) }}
+body {{ margin:0; color:var(--ink); font:16px/1.55 var(--font-text);
+  background:radial-gradient(circle at 0 0, rgba(0,142,207,.10), transparent 34%), radial-gradient(circle at 85% 8%, rgba(56,189,248,.10), transparent 26%), var(--bg) }}
+main {{ max-width:1180px; margin:0 auto; padding:40px 24px 56px }}
+h1 {{ font-family:var(--font-head); font-weight:700; font-size:clamp(32px,4vw,48px); line-height:1.1; letter-spacing:-.01em; color:var(--ink-strong); margin:0 0 12px; text-wrap:balance }}
+h2 {{ font-family:var(--font-head); font-weight:700; font-size:22px; line-height:1.3; color:var(--ink-strong); margin:48px 0 14px; text-wrap:balance }}
+h4 {{ margin:0 0 4px; font-size:13px; color:var(--muted); font-weight:600 }}
+p, td, li {{ text-wrap:pretty }}
+.sub {{ color:var(--muted); margin:0 0 24px; max-width:72ch }}
+h1 + .sub {{ font-size:18px; margin-bottom:32px }}
+h2 + .sub {{ margin:-6px 0 16px }}
+.card {{ background:var(--card); border:1px solid rgba(0,142,207,.10); border-radius:24px; box-shadow:var(--shadow); padding:24px 28px }}
+.kpis {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px }}
+.kpi-label {{ color:var(--muted); font-size:15px; font-weight:500 }}
+.kpi-val {{ font-family:var(--font-head); font-size:48px; font-weight:700; line-height:1.1; color:var(--ink-strong); margin:6px 0 4px; font-variant-numeric:tabular-nums }}
+.kpi-delta {{ font-size:15px; color:var(--muted); font-variant-numeric:tabular-nums }} .pos {{ color:var(--pos) }} .neg {{ color:var(--lie) }}
+.explain {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:20px; margin-top:16px }}
+.explain div {{ font-size:15px; color:var(--muted) }} .explain b {{ color:var(--ink-strong) }}
+.legend {{ display:flex; gap:20px; font-size:14px; color:var(--muted); margin-bottom:8px; flex-wrap:wrap; align-items:center }}
+.dot {{ display:inline-block; width:12px; height:12px; border-radius:4px; margin-right:8px; vertical-align:-1px }}
+.bar-row {{ display:grid; grid-template-columns:minmax(180px,320px) 1fr 56px; gap:16px; align-items:center; padding:12px 0; border-top:1px solid var(--line) }}
+.bar-label b {{ display:block; font-size:15px; color:var(--ink-strong) }} .bar-label span {{ display:block; font-size:13px; color:var(--muted) }}
+.bar {{ display:flex; gap:2px; height:28px; border-radius:8px; overflow:hidden; background:var(--surface) }}
+.seg {{ display:flex; align-items:center; justify-content:center; color:#fff; font-size:13px; font-weight:700; font-variant-numeric:tabular-nums }}
+.ok {{ background:var(--ok) }} .unk {{ background:var(--unk); color:var(--ink) }} .lie {{ background:var(--lie) }}
+.bar-idx {{ font-family:var(--font-head); font-weight:700; font-size:17px; text-align:right; font-variant-numeric:tabular-nums; color:var(--ink-strong) }}
+table {{ width:100%; border-collapse:collapse; font-size:15px }}
+th, td {{ text-align:left; padding:10px 8px; border-bottom:1px solid var(--line); vertical-align:top }}
+tr:last-child td {{ border-bottom:0 }}
+th {{ color:var(--navy); font-weight:600; font-size:13px; border-bottom-color:var(--line-strong) }}
+.num {{ text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap }}
 .lie-t {{ color:var(--lie) }} .note {{ color:var(--muted); font-size:13px }}
-.src {{ color:var(--muted); font-size:12px; font-weight:400; margin-left:6px }}
-.two {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:12px }}
-.case {{ background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px; margin-bottom:12px }}
-.case-q {{ font-weight:600; margin-bottom:10px }} .pill {{ background:var(--accent); color:#fff; border-radius:6px; padding:1px 7px; font-size:12px; margin-right:6px }}
-.case-grid {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px }} .case-grid p {{ margin:0 }}
-.caught {{ margin:12px 0 0; padding-left:18px; font-size:14px }} .truth {{ font-size:13px; color:var(--muted); margin:8px 0 0 }}
-.verdict {{ font-size:12px; border-radius:6px; padding:1px 6px; margin-left:6px; color:#fff }}
-.v-ok {{ background:var(--ok) }} .v-unk {{ background:var(--unk) }} .v-lie {{ background:var(--lie) }}
-footer {{ color:var(--muted); font-size:13px; margin-top:40px }}
-@media (max-width:640px) {{ .bar-row {{ grid-template-columns:1fr 44px }} .bar-label {{ grid-column:1/-1 }} }}
+.src {{ color:var(--muted); font-size:13px; font-weight:500; margin-left:8px }}
+.two {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(340px,1fr)); gap:16px }}
+.case {{ background:var(--card); border:1px solid rgba(0,142,207,.10); border-radius:20px; box-shadow:var(--shadow); padding:20px 24px; margin-bottom:16px }}
+.case-q {{ font-weight:600; color:var(--ink-strong); margin-bottom:14px }}
+.pill {{ display:inline-block; background:var(--primary-soft); color:var(--primary-ink); border-radius:999px; padding:2px 10px; font-size:13px; font-weight:600; margin-right:8px; font-variant-numeric:tabular-nums }}
+.case-grid {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px }} .case-grid p {{ margin:0 }}
+.case-grid > div {{ background:var(--surface); border-radius:14px; padding:12px 14px }}
+.caught {{ margin:14px 0 0; padding-left:20px; font-size:14px }} .caught li + li {{ margin-top:4px }}
+.truth {{ font-size:14px; color:var(--muted); margin:10px 0 0 }}
+.verdict {{ display:inline-block; font-size:12px; font-weight:600; border-radius:999px; padding:1px 8px; margin-left:6px; color:#fff; vertical-align:2px }}
+.v-ok {{ background:var(--pos) }} .v-unk {{ background:var(--muted) }} .v-lie {{ background:var(--lie) }}
+footer {{ color:var(--muted); font-size:14px; margin-top:48px; padding-top:20px; border-top:1px solid var(--line) }}
+@media (max-width:640px) {{ main {{ padding:24px 16px 40px }} .card {{ padding:20px; border-radius:20px }}
+  .bar-row {{ grid-template-columns:1fr 48px }} .bar-label {{ grid-column:1/-1 }} .two {{ grid-template-columns:1fr }}
+  .card:has(table) {{ overflow-x:auto }} }}
 </style></head><body><main>
 <h1>ИИ без обмана</h1>
-<p class="sub">Ответы на вопросы по документам госзакупок. Модель: {E(str(final.get("model", fs.get("model", ""))))}. Вопросов: {n}.</p>
+<p class="sub">Как система отвечает на вопросы по документам госзакупок и сколько обманов она убирает. Замер официальным оценщиком организатора на одной и той же модели ({E(str(final.get("model", fs.get("model", ""))))}), {n} вопросов учебного набора.</p>
 
 <section class="kpis">
   <div class="card">{kpi("Индекс доверия", base.get("index", 0), final.get("index", 0))}</div>
@@ -337,8 +393,8 @@ footer {{ color:var(--muted); font-size:13px; margin-top:40px }}
   <tr><th>Шаг</th><th class="num">Запросов к модели</th><th class="num">Токенов</th><th class="num">Время ответов модели, с</th></tr>
   {"".join(f'<tr><td>{E(r.get("title", r["step"]))}</td><td class="num">{r.get("calls", "")}</td><td class="num">{r.get("tokens", "")}</td><td class="num">{round(r.get("model_seconds") or r.get("seconds") or 0)}</td></tr>' for r in ladder)}
 </table></div>
-<footer>Замер официальным check.py организатора на одной и той же модели. Система не видит правильных ответов: их использует только оценщик.</footer>
+<footer>Решение кейса ОНСОФТ «ИИ, который не обманывает» · хакатон Школы 21. Замер официальным check.py организатора на одной и той же модели. Система не видит правильных ответов: их использует только оценщик.</footer>
 </main></body></html>"""
     out = results_dir / "report.html"
-    out.write_text(html_doc, encoding="utf-8")
+    out.write_text(typo_html(html_doc), encoding="utf-8")
     return out
