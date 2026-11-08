@@ -67,7 +67,14 @@ def build_report(results_dir: Path, data_dir: Path) -> Path:
     if not ladder:
         raise SystemExit("Нет результатов. Сначала запустите: run.bat ladder")
     base = ladder[0]
-    final = max(reversed(ladder), key=lambda r: r.get("index", -999))  # при равенстве — более поздний шаг
+    # итоговая система — прогон configs/final.json (results/runs/final); если его нет — лучший шаг лестницы
+    fpath = runs / "final" / "score.json"
+    if fpath.exists():
+        fst = runs / "final" / "stats.json"
+        final = {"step": "final", "title": "Итоговая система", **json.loads(fpath.read_text(encoding="utf-8")),
+                 **({"model": json.loads(fst.read_text(encoding="utf-8")).get("model")} if fst.exists() else {})}
+    else:
+        final = max(reversed(ladder), key=lambda r: r.get("index", -999))
     n = base.get("n") or 1
     gold = {g["id"]: g for g in json.loads((data_dir / "answers_public.json").read_text(encoding="utf-8"))} \
         if (data_dir / "answers_public.json").exists() else {}
@@ -114,7 +121,10 @@ def build_report(results_dir: Path, data_dir: Path) -> Path:
     root = Path(data_dir).parent
     sources = [("учебный набор", final["step"], base["step"], gold)]
     for label, fin, bas, d in (("переформулированные вопросы", "para_final", "para_00_baseline", "paraphrase"),
-                               ("трудные файлы", "hard_final", "hard_00_baseline", "hard")):
+                               ("трудные файлы", "hard_final", "hard_00_baseline", "hard"),
+                               ("без рассуждений, учебный набор", "nothink_train_final", "nothink_train_00_baseline", "train"),
+                               ("без рассуждений, другие формулировки", "nothink_paraphrase_final",
+                                "nothink_paraphrase_00_baseline", "paraphrase")):
         if (runs / fin / "trace.jsonl").exists():
             sources.append((label, fin, bas, load_gold(root / d)))
     examples = []
@@ -141,7 +151,7 @@ def build_report(results_dir: Path, data_dir: Path) -> Path:
             picked.append(ex)
     picked += [ex for ex in examples if ex not in picked and ex[1] != ("injection",)]
     ex_html = []
-    for _, _, label, t, evs, ok, first, g, b in picked[:8]:
+    for _, _, label, t, evs, ok, first, g, b in picked[:10]:
         ev_html = "".join(f'<li><b>{E(CRITIC_NAMES.get(e.get("critic"), e.get("critic", "")))}:</b> {E(e.get("message", ""))}</li>' for e in evs[:3])
         ex_html.append(f'''<article class="case">
   <div class="case-q"><span class="pill">{E(t["id"])}</span> {E(t.get("question", ""))} <span class="src">{E(label)}</span></div>
@@ -155,10 +165,29 @@ def build_report(results_dir: Path, data_dir: Path) -> Path:
   {f'<p class="truth">Правильно: {E(g.get("status", ""))} {E(" / ".join(map(str, g.get("expected", []))))}</p>' if g else ""}
 </article>''')
 
-    # --- проверка на данных, на которых систему не настраивали
     def sc(step):
         p = runs / step / "score.json"
         return json.loads(p.read_text(encoding="utf-8")) if p.exists() else None
+
+    # --- режим модели: с рассуждениями и без (одна и та же модель, меняется только режим)
+    def stat(step):
+        p = runs / step / "stats.json"
+        return json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
+    mode_rows = []
+    for label, pre in (("с рассуждениями (итоговый режим)", ""), ("без рассуждений", "nothink_")):
+        cells = ""
+        for bas, fin in ((f"{pre}train_00_baseline" if pre else base["step"], f"{pre}train_final" if pre else final["step"]),
+                         (f"{pre}paraphrase_00_baseline" if pre else "para_00_baseline",
+                          f"{pre}paraphrase_final" if pre else "para_final")):
+            b0, f0 = sc(bas), sc(fin)
+            cells += (f'<td class="num">{b0.get("index")} → <b>{f0.get("index")}</b></td>' if b0 and f0 else "<td></td>")
+        st = stat(f"{pre}train_final" if pre else final["step"])
+        q = st.get("questions") or n
+        sec = st.get("model_seconds") or 0
+        cells += f'<td class="num">{sec / q:.1f}</td>' if sec else "<td></td>"
+        mode_rows.append(f"<tr><td>{E(label)}</td>{cells}</tr>")
+
+    # --- проверка на данных, на которых систему не настраивали
     gen_rows = []
     for label, note, bas, fin in (
             ("Учебный набор организатора", "на нём разбирали ошибки", base["step"], final["step"]),
@@ -277,6 +306,13 @@ footer {{ color:var(--muted); font-size:13px; margin-top:40px }}
     <h2>Вклад каждого шага</h2><div class="card"><table>
     <tr><th>Шаг</th><th class="num">Индекс</th><th class="num">Обманов</th></tr>{"".join(contrib)}</table></div></div>
 </div>
+
+<h2>Режим модели: точность и скорость</h2>
+<p class="sub">Та же модель, меняется только режим «рассуждать перед ответом». Индекс: модель как есть → наша система.</p>
+<div class="card"><table>
+  <tr><th>Режим</th><th class="num">Учебный набор</th><th class="num">Другие формулировки</th><th class="num">Секунд модели на вопрос</th></tr>
+  {"".join(mode_rows)}
+</table></div>
 
 <h2>Работает ли на том, на чём её не настраивали</h2>
 <div class="card"><table>

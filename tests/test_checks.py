@@ -84,6 +84,27 @@ class TestChecks(unittest.TestCase):
         self.assertEqual(C.canonical_yesno(a, "Какие лицензии должны быть у участника?"), a)
         self.assertEqual(C.canonical_yesno("Не установлено", "Какой размер обеспечения гарантии?"), "нет, не установлено")
 
+    def test_stubborn_absent_not_accepted(self):
+        """Перепроверка нашла ответ, а модель упорно повторяет «нет в документах» — это не принимается."""
+        q = "Когда истекает срок подачи заявок (дата и время)?"
+        absent = {"status": "нет в документах", "answer": "", "mentions": []}
+        found = {"found": True, "file": "05_izmeneniya_izveshcheniya.txt",
+                 "quote": "Дата и время окончания срока подачи заявок: 27.11.2026 10:00", "value": "27.11.2026 10:00"}
+        r = solve("P01", q, [absent, found, absent, absent], max_retries=2)
+        self.assertEqual((r.status, r.answer), ("ответ", "27.11.2026 10:00"))
+
+    def test_negation_about_other_parameter(self):
+        """«Не требуется» про обеспечение гарантийных обязательств — не ответ на вопрос о гарантийном сроке."""
+        pkg = load_package(PK / "P02")
+        s = next(x for x in pkg.sentences if "гарантийных обязательств не требуется" in x.text)
+        ans = {"status": "ответ", "answer": "нет, не требуется", "mentions": [{"sid": s.sid, "quote": s.text, "value": "не требуется"}]}
+        other = {"same_parameter": False, "reason": "цитата об обеспечении гарантийных обязательств"}
+        r = solve("P02", "Какой гарантийный срок на результаты работ, в месяцах?", [ans, other], max_retries=0)
+        self.assertEqual(r.status, "не знаю")
+        r = solve("P02", "Какой гарантийный срок на результаты работ, в месяцах?", [ans, {"same_parameter": True}],
+                  max_retries=0)
+        self.assertEqual((r.status, r.answer), ("ответ", "нет, не установлено"))
+
     def test_discrepancy_detected(self):
         r = solve("P01", "Какой срок выполнения работ, в календарных днях?",
                   [{"status": "ответ", "answer": "60", "mentions": [

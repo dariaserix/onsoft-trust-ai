@@ -7,9 +7,9 @@
     "careful": 0,
     "lies": 0,
     "index": 100.0,
-    "calls": 84,
-    "tokens": 215940,
-    "model_seconds": 1622.0
+    "calls": 85,
+    "tokens": 216450,
+    "model_seconds": 1629.3
   },
   {
     "title": "Проверка цитат",
@@ -22,9 +22,9 @@
     "careful": 1,
     "lies": 2,
     "index": 93.0,
-    "calls": 90,
-    "tokens": 243275,
-    "model_seconds": 1939.4
+    "calls": 91,
+    "tokens": 244214,
+    "model_seconds": 1950.1
   },
   {
     "title": "Проверка чисел и единиц",
@@ -36,9 +36,9 @@
     "careful": 0,
     "lies": 0,
     "index": 100.0,
-    "calls": 84,
-    "tokens": 215940,
-    "model_seconds": 1622.0
+    "calls": 85,
+    "tokens": 216450,
+    "model_seconds": 1629.3
   },
   {
     "title": "Расчёт кодом",
@@ -50,9 +50,9 @@
     "careful": 5,
     "lies": 1,
     "index": 90.1,
-    "calls": 92,
-    "tokens": 248680,
-    "model_seconds": 1962.4
+    "calls": 93,
+    "tokens": 249190,
+    "model_seconds": 1969.7
   },
   {
     "title": "Критик изменений извещения",
@@ -64,9 +64,9 @@
     "careful": 0,
     "lies": 0,
     "index": 100.0,
-    "calls": 84,
-    "tokens": 215940,
-    "model_seconds": 1622.0
+    "calls": 85,
+    "tokens": 216450,
+    "model_seconds": 1629.3
   },
   {
     "title": "Критик расхождений",
@@ -79,9 +79,9 @@
     "careful": 0,
     "lies": 0,
     "index": 100.0,
-    "calls": 82,
-    "tokens": 214868,
-    "model_seconds": 1613.7
+    "calls": 83,
+    "tokens": 215378,
+    "model_seconds": 1621.0
   },
   {
     "title": "Критик «да/нет» и отрицаний",
@@ -107,9 +107,9 @@
     "careful": 0,
     "lies": 0,
     "index": 100.0,
-    "calls": 74,
-    "tokens": 152322,
-    "model_seconds": 1510.3
+    "calls": 75,
+    "tokens": 152832,
+    "model_seconds": 1517.6
   },
   {
     "title": "Агентный цикл (исправление по замечаниям)",
@@ -121,9 +121,9 @@
     "careful": 0,
     "lies": 0,
     "index": 100.0,
-    "calls": 84,
-    "tokens": 215940,
-    "model_seconds": 1622.0
+    "calls": 85,
+    "tokens": 216450,
+    "model_seconds": 1629.3
   },
   {
     "title": "Поиск нужных кусков документа",
@@ -135,8 +135,8 @@
     "careful": 0,
     "lies": 0,
     "index": 100.0,
-    "calls": 84,
-    "tokens": 699053,
-    "model_seconds": 1324.9
+    "calls": 85,
+    "tokens": 699563,
+    "model_seconds": 1332.2
   }
 ]

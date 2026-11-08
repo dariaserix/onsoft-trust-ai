@@ -33,7 +33,8 @@ DEFAULTS = {
     "absent_window_chars": 40000,
     "llm_critic": False,         # ИИ-критик проверяет итоговый ответ
     "max_retries": 2,            # попыток исправления после замечаний (0 = сразу «не знаю»)
-    "no_think_fallback": True,   # пустой ответ (рассуждения упёрлись в лимит) → повтор без рассуждений
+    "no_think_fallback": True,
+    "negation_llm": True,        # «требования нет»: второй запрос подтверждает, что отрицание о том же параметре   # пустой ответ (рассуждения упёрлись в лимит) → повтор без рассуждений
 }
 
 
@@ -106,6 +107,7 @@ class Solver:
                 {"role": "user", "content": fill(load_prompt("answer_user.txt"), package=pkg.name,
                                                  fragments=render_fragments(frags), question=question)}]
         absent_checked = False
+        found = None
         first_answer = None
         for attempt in range(cfg["max_retries"] + 1):
             r = self.llm.chat(msgs, purpose=f"answer#{attempt}", qid=qid)
@@ -132,6 +134,24 @@ class Solver:
                         events.append({"critic": "absent", "caught": True,
                                        "message": f"Модель сказала «нет в документах», а проверка нашла: «{found['quote'][:80]}»."})
                         cand = None
+                elif cand is not None and cand.status == "нет в документах" and found:
+                    # Модель упорствует, хотя ответ найден дословной цитатой. «Нет в документах» здесь — заведомая
+                    # неправда, её не принимаем. Найденный фрагмент проходит все те же проверки; не прошёл — «не знаю».
+                    alt, alt_issues, _ = self.evaluate(qid, question, pkg, {
+                        "status": "ответ", "answer": str(found.get("value") or ""),
+                        "mentions": [{"file": found["file"], "quote": found["quote"], "value": str(found.get("value") or "")}]})
+                    if alt is not None and not alt_issues and alt.status in ("ответ", "расхождение"):
+                        cand, issues = alt, []
+                        events.append({"critic": "absent", "caught": True,
+                                       "message": "Модель повторила «нет в документах», хотя ответ найден. Взят найденный "
+                                                  "фрагмент, он прошёл все проверки."})
+                    else:
+                        cand = None
+                        issues.append(C.Issue("absent", f"Ответ есть в документе {found['file']}: «{found['quote']}». "
+                                                        f"«Нет в документах» не принимается."))
+                        events.append({"critic": "absent", "caught": True,
+                                       "message": "Модель повторила «нет в документах», хотя ответ найден; "
+                                                  "найденный фрагмент не прошёл проверки → «не знаю»."})
                 # ИИ-критик
                 if cand is not None and not issues and cfg["llm_critic"] and cand.status in ("ответ", "расхождение"):
                     prob = self.llm_critic(qid, question, cand)
@@ -233,7 +253,18 @@ class Solver:
 
         # 6. да/нет и отрицания
         if cfg["yesno_check"] and status == "ответ":
-            issues += C.check_yesno(question, answer, active)
+            yn = C.check_yesno(question, answer, active)
+            issues += yn
+            # «требования нет» на вопрос о значении: цитата должна отрицать именно этот параметр, а не соседний
+            # (например, «срок оплаты не установлен» не отвечает на вопрос о сроке поставки)
+            if not yn and cfg.get("negation_llm", True) and not C.is_yesno(question) and C.is_pure_negation(answer):
+                same, why = self.negation_llm(qid, question, active)
+                if not same:
+                    issues.append(C.Issue("yesno", f"Цитата говорит об отсутствии другого требования, а не того, о чём "
+                                                   f"вопрос ({why}). Если о самом параметре в документах ничего нет — "
+                                                   f"status «нет в документах»."))
+                    events.append({"critic": "yesno", "caught": True,
+                                   "message": f"Модель ответила «не установлено», сославшись на другой параметр: {why}"})
             answer = C.canonical_yesno(answer, question)
 
         if not answer:
@@ -329,6 +360,17 @@ class Solver:
             return True, vals or None, None
         keep = [str(x).upper() for x in (d.get("relevant_sids") or [])]
         return False, None, keep or None
+
+    def negation_llm(self, qid, question, mentions):
+        """Узкий критик: отрицание в цитате относится к тому же параметру, что и вопрос? → (да/нет, пояснение)."""
+        quotes = "\n".join(f"- {m.evidence or m.out_quote}" for m in mentions)
+        msgs = [{"role": "system", "content": load_prompt("negation_system.txt")},
+                {"role": "user", "content": f"Вопрос: {question}\nЦитаты:\n{quotes}"}]
+        r = self.llm.chat(msgs, purpose="negation", qid=qid)
+        d = C.parse_json(r.text) or {}
+        if d.get("same_parameter") is False:
+            return False, str(d.get("reason", "цитата о другом параметре"))[:200]
+        return True, ""
 
     def absent_check(self, qid, question, pkg: Package):
         text = pkg.full_text()

@@ -6,8 +6,8 @@
   "seconds": 0.0,
   "model_seconds": 1510.3399999999965,
   "questions": 71,
-  "wall_seconds": 0.2,
+  "wall_seconds": 0.1,
   "model": "openai:qwen3-6-practice",
   "config": "06_discrepancy",
-  "started": "2026-11-08 16:36:49"
+  "started": "2026-11-08 17:45:24"
 }

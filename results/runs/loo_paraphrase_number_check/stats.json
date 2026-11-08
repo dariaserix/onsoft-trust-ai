@@ -1,13 +1,13 @@
 {
-  "calls": 89,
-  "cached": 89,
-  "prompt_tokens": 171427,
-  "completion_tokens": 64924,
+  "calls": 90,
+  "cached": 90,
+  "prompt_tokens": 171663,
+  "completion_tokens": 65053,
   "seconds": 0.0,
-  "model_seconds": 1074.0100000000016,
+  "model_seconds": 1076.5600000000004,
   "questions": 71,
   "wall_seconds": 0.2,
   "model": "openai:qwen3-6-practice",
   "config": "loo_paraphrase_number_check",
-  "started": "2026-11-08 16:59:46"
+  "started": "2026-11-08 17:45:42"
 }
