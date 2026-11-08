@@ -4,70 +4,215 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ИИ без обмана</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
 <style>
-:root { --bg:#f6f7f9; --card:#fff; --ink:#14171f; --muted:#5d6472; --line:#e3e6ec;
-  --ok:#1f9d63; --unk:#8a92a1; --lie:#d9443b; --warn:#c77700; --accent:#2f5bea; --quote:#f1f4ff; }
-@media (prefers-color-scheme: dark) { :root { --bg:#0f1115; --card:#181b22; --ink:#e9ecf2; --muted:#9aa2b1;
-  --line:#2a2f3a; --quote:#1d2333; } }
+/* Цвета и шрифты — по фирменному стилю ОНСОФТ (on-soft.ru, светлая тема) */
+:root {
+  --bg:#f4f9fc; --bg-alt:#ecf3f8; --card:#ffffff; --surface:#eef5fa;
+  --ink:#102033; --ink-strong:#0f2237; --muted:#5b7086; --navy:#16324a;
+  --primary:#008ecf; --primary-ink:#0072a8; --accent:#38bdf8; --primary-soft:#e0f1fb;
+  --line:#c2d2e0; --line-soft:#d8e4ee;
+  --ok:#0f7b5f; --ok-soft:#e3f4ee; --warn:#8a5000; --warn-soft:#fbf0dc;
+  --lie:#b93a32; --lie-soft:#fbe7e5; --unk:#4d6176; --unk-soft:#edf1f5;
+  --radius-card:24px; --radius-ctl:10px;
+  --shadow-card:0 24px 64px rgba(16,32,51,.08), 0 2px 6px rgba(16,32,51,.04);
+  --ring:0 0 0 4px rgba(0,142,207,.18);
+  --font-text:"Inter", ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  --font-head:"Montserrat", "Inter", ui-sans-serif, system-ui, sans-serif;
+  color-scheme: light;
+}
 * { box-sizing:border-box }
-body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif }
-main { max-width:920px; margin:0 auto; padding:32px 16px 64px }
-header { display:flex; justify-content:space-between; align-items:baseline; gap:16px; flex-wrap:wrap }
-h1 { font-size:28px; margin:0 } a { color:var(--accent) }
-.sub { color:var(--muted); margin:4px 0 24px }
-.card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px; margin-bottom:16px }
-.row { display:grid; grid-template-columns:1fr 1fr; gap:12px }
-label { display:block; font-size:13px; color:var(--muted); margin:0 0 4px; font-weight:600 }
-select, textarea, button { font:inherit; width:100%; border:1px solid var(--line); border-radius:10px; padding:10px 12px;
-  background:var(--card); color:var(--ink) }
-textarea { min-height:72px; resize:vertical; margin-top:12px }
-button { background:var(--accent); color:#fff; border:0; font-weight:600; cursor:pointer; margin-top:12px }
-button:disabled { opacity:.6; cursor:wait }
-.status { display:inline-block; border-radius:8px; padding:2px 10px; color:#fff; font-weight:600; font-size:14px }
-.s-ответ { background:var(--ok) } .s-расхождение { background:var(--warn) } .s-нет { background:var(--accent) } .s-не { background:var(--unk) }
-.answer { font-size:24px; font-weight:700; margin:10px 0 }
-blockquote { margin:12px 0 0; background:var(--quote); border-left:4px solid var(--accent); padding:10px 14px; border-radius:6px }
-blockquote small { display:block; color:var(--muted); margin-top:6px }
+html { scrollbar-color: var(--line) transparent }
+::selection { background:rgba(0,142,207,.18); color:var(--ink-strong) }
+body {
+  margin:0; color:var(--ink); font:16px/1.55 var(--font-text); font-feature-settings:"tnum" 0;
+  background:
+    radial-gradient(circle at 0 0, rgba(0,142,207,.10), transparent 34%),
+    radial-gradient(circle at 85% 8%, rgba(56,189,248,.10), transparent 26%),
+    var(--bg);
+  min-height:100vh; caret-color:var(--primary);
+}
+a { color:var(--primary-ink); text-underline-offset:3px }
+:focus-visible { outline:none; box-shadow:var(--ring) }
+
+.page { max-width:1240px; margin:0 auto; padding:40px 24px 48px }
+.top { display:flex; justify-content:space-between; align-items:flex-start; gap:24px; flex-wrap:wrap; margin-bottom:32px }
+h1 { font-family:var(--font-head); font-weight:700; font-size:clamp(32px, 4vw, 48px); line-height:1.1; letter-spacing:-.01em; color:var(--ink-strong); margin:0 0 12px }
+.lead { color:var(--muted); font-size:18px; line-height:1.55; margin:0; max-width:60ch }
+.btn-ghost { display:inline-flex; align-items:center; gap:8px; padding:12px 20px; border-radius:8px; white-space:nowrap;
+  background:rgba(255,255,255,.84); border:1px solid rgba(0,142,207,.26); color:var(--primary-ink); font-weight:600; text-decoration:none;
+  transition:background .2s, border-color .2s }
+.btn-ghost:hover { background:#fff; border-color:var(--primary) }
+.btn-ghost svg { width:18px; height:18px }
+
+.layout { display:grid; grid-template-columns:minmax(0, 440px) minmax(0, 1fr); gap:24px; align-items:start }
+.card { background:var(--card); border:1px solid rgba(0,142,207,.10); border-radius:var(--radius-card); box-shadow:var(--shadow-card); padding:28px }
+.ask { position:sticky; top:24px }
+h2 { font-family:var(--font-head); font-weight:700; font-size:20px; line-height:1.3; color:var(--ink-strong); margin:0 0 20px }
+
+.field { display:flex; flex-direction:column; gap:6px; margin-bottom:16px }
+label { font-size:14px; font-weight:600; color:var(--navy) }
+select, textarea {
+  font:inherit; color:var(--ink); width:100%; background:#fff;
+  border:1px solid var(--line); border-radius:var(--radius-ctl); transition:border-color .2s, box-shadow .2s;
+}
+select:hover, textarea:hover { border-color:#9fb6ca }
+select:focus-visible, textarea:focus-visible { border-color:var(--primary); box-shadow:var(--ring) }
+select {
+  appearance:none; -webkit-appearance:none; height:48px; padding:0 48px 0 14px; cursor:pointer;
+  text-overflow:ellipsis; white-space:nowrap; overflow:hidden;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2316324a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 16px center; background-size:18px;
+}
+textarea { min-height:112px; padding:12px 14px; resize:vertical; line-height:1.5 }
+textarea::placeholder { color:var(--muted) }
+.row { display:grid; grid-template-columns:minmax(0, 1fr) 112px; gap:12px }
+
+.btn-primary {
+  display:inline-flex; align-items:center; justify-content:center; gap:10px; width:100%; height:52px; margin-top:4px;
+  font:700 19px/1 var(--font-text); color:#fff; border:0; border-radius:8px; cursor:pointer;
+  background:linear-gradient(135deg, #0072a8, #0a96d4); box-shadow:0 14px 30px rgba(0,142,207,.24);
+  transition:box-shadow .2s, transform .2s, filter .2s;
+}
+.btn-primary:hover { box-shadow:0 18px 36px rgba(0,142,207,.32); filter:saturate(1.08) }
+.btn-primary:active { transform:translateY(1px) }
+.btn-primary:disabled { cursor:progress; filter:saturate(.6) brightness(1.05); box-shadow:none }
+.btn-primary:focus-visible { box-shadow:var(--ring), 0 14px 30px rgba(0,142,207,.24) }
+.spin { width:18px; height:18px; border-radius:50%; border:2px solid rgba(255,255,255,.45); border-top-color:#fff; animation:spin .8s linear infinite }
+@keyframes spin { to { transform:rotate(360deg) } }
+.hint { font-size:14px; color:var(--muted); margin:16px 0 0 }
+
+/* Результат */
+.result { display:flex; flex-direction:column; gap:24px }
+.empty { display:flex; gap:16px; align-items:flex-start; color:var(--muted) }
+.empty svg { flex:none; width:40px; height:40px; color:var(--primary) }
+.empty b { display:block; color:var(--ink-strong); font-size:17px; margin-bottom:4px }
+.empty p { margin:0; max-width:52ch }
+.pill { display:inline-flex; align-items:center; gap:8px; border-radius:999px; padding:6px 14px; font-weight:600; font-size:15px }
+.pill svg { width:16px; height:16px }
+.s-ответ { background:var(--ok-soft); color:var(--ok) }
+.s-расхождение { background:var(--warn-soft); color:var(--warn) }
+.s-нет { background:var(--primary-soft); color:var(--navy) }
+.s-не { background:var(--unk-soft); color:var(--unk) }
+.question { color:var(--muted); font-size:15px; margin:16px 0 4px }
+.answer { font-family:var(--font-head); font-weight:700; font-size:clamp(24px, 2.6vw, 34px); line-height:1.2; color:var(--ink-strong); margin:0 0 20px; overflow-wrap:anywhere }
+.quote { background:var(--surface); border:1px solid var(--line-soft); border-radius:16px; padding:18px 20px }
+.quote-head { display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; font-size:13px; font-weight:600; color:var(--navy); margin-bottom:8px }
+.quote-head span:last-child { font-weight:500; color:var(--muted); font-variant-numeric:tabular-nums }
+.quote p { margin:0; font-size:17px; line-height:1.6; color:var(--ink) }
+.warns { display:flex; gap:10px; align-items:flex-start; margin:16px 0 0; padding:12px 14px; border-radius:12px; background:var(--warn-soft); color:var(--warn); font-size:14px }
+.warns svg { flex:none; width:18px; height:18px; margin-top:1px }
+.meta { color:var(--muted); font-size:14px; margin:16px 0 0; font-variant-numeric:tabular-nums }
+
 .steps { list-style:none; margin:0; padding:0 }
-.steps li { border-left:2px solid var(--line); padding:0 0 14px 16px; position:relative }
-.steps li::before { content:""; position:absolute; left:-7px; top:6px; width:12px; height:12px; border-radius:50%; background:var(--line) }
-.steps li.good::before { background:var(--ok) } .steps li.bad::before { background:var(--lie) } .steps li.warn::before { background:var(--warn) }
-.steps b { display:block }
-.check { font-size:14px; margin:2px 0 } .check.ok { color:var(--ok) } .check.bad { color:var(--lie) } .check.warn { color:var(--warn) }
-.raw { font-size:13px; color:var(--muted) }
-.warns { color:var(--warn); font-size:14px }
-.meta { color:var(--muted); font-size:13px; margin-top:8px }
-@media (max-width:640px) { .row { grid-template-columns:1fr } }
+.steps li { position:relative; padding:0 0 22px 40px }
+.steps li:not(:last-child)::after { content:""; position:absolute; left:13px; top:30px; bottom:4px; width:1px; background:var(--line-soft) }
+.dot { position:absolute; left:0; top:0; width:28px; height:28px; border-radius:50%; display:grid; place-items:center }
+.dot svg { width:15px; height:15px }
+.good .dot { background:var(--ok-soft); color:var(--ok) }
+.bad .dot { background:var(--lie-soft); color:var(--lie) }
+.warn .dot { background:var(--warn-soft); color:var(--warn) }
+.info .dot { background:var(--primary-soft); color:var(--primary-ink) }
+.steps b { display:block; color:var(--ink-strong); font-size:16px; line-height:28px }
+.raw { font-size:14px; color:var(--muted); margin:2px 0 6px }
+.check { display:flex; gap:8px; align-items:flex-start; font-size:14px; line-height:1.5; margin:4px 0 0; color:var(--ink) }
+.check svg { flex:none; width:16px; height:16px; margin-top:2px }
+.check.ok { color:var(--ok) } .check.bad { color:var(--lie) } .check.warn { color:var(--warn) } .check.next { color:var(--muted) }
+
+.error { display:flex; gap:12px; align-items:flex-start; color:var(--lie) }
+.error svg { flex:none; width:22px; height:22px }
+.error b { display:block; color:var(--ink-strong) }
+
+.appear { animation:appear .45s cubic-bezier(.16,1,.3,1) both }
+.appear + .appear { animation-delay:.08s }
+@keyframes appear { from { opacity:0; transform:translateY(10px) } }
+
+.foot { margin-top:40px; padding-top:20px; border-top:1px solid var(--line-soft); color:var(--muted); font-size:14px; display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap }
+
+@media (max-width:1000px) {
+  .layout { grid-template-columns:1fr }
+  .ask { position:static }
+}
+@media (max-width:560px) {
+  .page { padding:24px 16px 32px }
+  .card { padding:20px; border-radius:20px }
+  .row { grid-template-columns:1fr }
+  .btn-ghost { width:100%; justify-content:center }
+}
+@media (prefers-reduced-motion: reduce) {
+  .appear { animation:none } .spin { animation-duration:2s }
+  * { transition:none !important }
+}
 </style>
 </head>
-<body><main>
-<header><h1>ИИ без обмана</h1><a href="/report" target="_blank">Дашборд «было/стало» →</a></header>
-<p class="sub">Задайте вопрос по документам закупки. Система отвечает только тем, что может подтвердить цитатой, иначе честно говорит «не знаю».</p>
+<body>
+<div class="page">
+  <header class="top">
+    <div>
+      <h1>ИИ без обмана</h1>
+      <p class="lead">Задайте вопрос по документам закупки. Система отвечает только тем, что может подтвердить цитатой, иначе честно говорит «не знаю».</p>
+    </div>
+    <a class="btn-ghost" href="/report" target="_blank" rel="noopener">Дашборд «было/стало»
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></a>
+  </header>
 
-<div class="card">
-  <div class="row">
-    <div><label>Набор</label><select id="ds"></select></div>
-    <div><label>Закупка</label><select id="pk"></select></div>
+  <div class="layout">
+    <section class="card ask" aria-labelledby="ask-h">
+      <h2 id="ask-h">Вопрос</h2>
+      <div class="row">
+        <div class="field"><label for="ds">Набор</label><select id="ds"></select></div>
+        <div class="field"><label for="pk">Закупка</label><select id="pk"></select></div>
+      </div>
+      <div class="field"><label for="sample">Готовые вопросы</label>
+        <select id="sample"><option value="">Выберите вопрос из набора</option></select></div>
+      <div class="field"><label for="q">Ваш вопрос</label>
+        <textarea id="q" placeholder="Например: какой размер обеспечения заявки, в рублях?"></textarea></div>
+      <button class="btn-primary" id="go" type="button">Спросить</button>
+      <p class="hint">Ctrl + Enter — спросить с клавиатуры</p>
+    </section>
+
+    <div class="result" id="out" aria-live="polite">
+      <section class="card empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6l-8-3Z"/><path d="m9 12 2 2 4-4"/></svg>
+        <div><b>Здесь появится ответ</b><p>С дословной цитатой из документа и всеми проверками, которые он прошёл: поиск, цитата, числа, расчёт, изменения извещения, расхождения.</p></div>
+      </section>
+    </div>
   </div>
-  <label style="margin-top:12px">Готовые вопросы</label>
-  <select id="sample"><option value="">— выбрать —</option></select>
-  <textarea id="q" placeholder="Например: Какой размер обеспечения заявки, в рублях?"></textarea>
-  <button id="go">Спросить</button>
-</div>
 
-<div id="out"></div>
+  <footer class="foot">
+    <span>Решение кейса ОНСОФТ «ИИ, который не обманывает» · хакатон Школы 21</span>
+    <span id="model-note"></span>
+  </footer>
+</div>
 
 <script>
 const CRITIC = { quote:"Критик цитат", number:"Критик чисел", calc:"Расчёт кодом", amendment:"Критик изменений извещения",
   discrepancy:"Критик расхождений", yesno:"Критик «да/нет»", absent:"Перепроверка «нет в документах»",
   llm_critic:"ИИ-критик", format:"Формат ответа", injection:"Защита от инструкций в тексте" };
+const DS_NAMES = { control:"Контрольный набор", train:"Учебный набор", paraphrase:"Другие формулировки",
+  newtypes:"Новые типы вопросов", hard:"Трудные файлы" };
+const DS_ORDER = ["control", "train", "paraphrase", "newtypes", "hard"];
+const ICON = {
+  check:'<path d="m5 12 5 5 9-10"/>',
+  x:'<path d="M6 6l12 12M18 6 6 18"/>',
+  alert:'<path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 2.4 17.5A2 2 0 0 0 4.1 20.5h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/>',
+  search:'<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
+  shield:'<path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6l-8-3Z"/>',
+  chat:'<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12Z"/>',
+  arrow:'<path d="M5 12h14M13 6l6 6-6 6"/>',
+  dash:'<path d="M5 12h14"/>',
+};
+const svg = (name, sw = 2) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[name]}</svg>`;
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let DATA = {};
 
 async function init() {
   DATA = await (await fetch("/api/datasets")).json();
-  $("ds").innerHTML = Object.keys(DATA).map(d => `<option>${esc(d)}</option>`).join("");
+  const keys = Object.keys(DATA).sort((a, b) => (DS_ORDER.indexOf(a) + 99 * (DS_ORDER.indexOf(a) < 0)) - (DS_ORDER.indexOf(b) + 99 * (DS_ORDER.indexOf(b) < 0)));
+  $("ds").innerHTML = keys.map(d => `<option value="${esc(d)}">${esc(DS_NAMES[d] || d)}</option>`).join("");
   fillPk();
 }
 function fillPk() {
@@ -78,60 +223,75 @@ function fillPk() {
 function fillSamples() {
   const d = DATA[$("ds").value] || {questions:[]};
   const qs = d.questions.filter(q => q.package === $("pk").value);
-  $("sample").innerHTML = `<option value="">— выбрать —</option>` + qs.map(q => `<option value="${esc(q.question)}">${esc(q.id)}: ${esc(q.question)}</option>`).join("");
+  $("sample").innerHTML = `<option value="">${qs.length ? "Выберите вопрос из набора" : "В этом наборе нет готовых вопросов"}</option>` +
+    qs.map(q => `<option value="${esc(q.question)}">${esc(q.id)} · ${esc(q.question)}</option>`).join("");
 }
 $("ds").onchange = fillPk; $("pk").onchange = fillSamples;
-$("sample").onchange = () => { if ($("sample").value) $("q").value = $("sample").value; };
+$("sample").onchange = () => { if ($("sample").value) { $("q").value = $("sample").value; $("q").focus(); } };
+$("q").addEventListener("keydown", e => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) $("go").click(); });
 
 function statusClass(s) { return "s-" + (s || "не").split(" ")[0]; }
+const STATUS_ICON = { "s-ответ":"check", "s-расхождение":"alert", "s-нет":"dash", "s-не":"dash" };
+
+function check(cls, icon, text) { return `<div class="check ${cls}">${svg(icon)}<span>${text}</span></div>`; }
 
 function renderTrace(trace) {
   const items = [];
   for (const st of trace) {
     if (st.step === "retrieval") {
-      items.push(`<li class="good"><b>Поиск по документам</b><div class="check">Выбрано ${st.sids.length} относящихся к вопросу фрагментов (${st.chars} символов) вместо всего документа</div></li>`);
+      items.push(`<li class="info"><span class="dot">${svg("search")}</span><b>Поиск по документам</b>
+        <div class="check">Выбрано ${st.sids.length} относящихся к вопросу фрагментов (${st.chars} символов) вместо всего документа</div></li>`);
     } else if (st.step === "injection") {
-      items.push(`<li class="warn"><b>Защита от инструкций в тексте</b><div class="check warn">${esc(st.message)}</div></li>`);
+      items.push(`<li class="warn"><span class="dot">${svg("shield")}</span><b>Защита от инструкций в тексте</b>${check("warn", "alert", esc(st.message))}</li>`);
     } else if (st.step && st.step.startsWith("answer")) {
       const n = Number(st.step.split("#")[1]) + 1;
-      const evs = (st.events || []).map(e => `<div class="check warn">⚠ ${esc(CRITIC[e.critic] || e.critic)}: ${esc(e.message)}</div>`).join("");
-      const iss = (st.issues || []).map(i => `<div class="check bad">✗ ${esc(CRITIC[i.critic] || i.critic)}: ${esc(i.message)}</div>`).join("");
-      const info = (st.info || []).map(t => `<div class="check ok">✓ ${esc(t)}</div>`).join("");
+      const evs = (st.events || []).map(e => check("warn", "alert", `${esc(CRITIC[e.critic] || e.critic)}: ${esc(e.message)}`)).join("");
+      const iss = (st.issues || []).map(i => check("bad", "x", `${esc(CRITIC[i.critic] || i.critic)}: ${esc(i.message)}`)).join("");
+      const info = (st.info || []).map(t => check("ok", "check", esc(t))).join("");
       const ok = (st.issues || []).length === 0;
-      let raw = ""; try { const j = JSON.parse(st.raw.slice(st.raw.indexOf("{"), st.raw.lastIndexOf("}") + 1)); raw = `${j.status || ""}: ${j.answer || ""}`; } catch (e) {}
-      items.push(`<li class="${ok ? "good" : "bad"}"><b>Попытка ${n}: модель ответила</b><div class="raw">${esc(raw)}</div>${evs}${iss}${info}
-        ${ok ? `<div class="check ok">✓ Все проверки пройдены</div>` : (n < 3 ? `<div class="check">→ замечания отправлены модели на исправление</div>` : "")}</li>`);
+      let raw = ""; try { const j = JSON.parse(st.raw.slice(st.raw.indexOf("{"), st.raw.lastIndexOf("}") + 1)); raw = j.answer && j.answer !== j.status ? `${j.status || ""}: ${j.answer}` : (j.status || ""); } catch (e) {}
+      items.push(`<li class="${ok ? "good" : "bad"}"><span class="dot">${svg(ok ? "check" : "x")}</span><b>Попытка ${n}: модель ответила</b>
+        ${raw ? `<div class="raw">${esc(raw)}</div>` : ""}${evs}${iss}${info}
+        ${ok ? check("ok", "check", "Все проверки пройдены") : (n < 3 ? check("next", "arrow", "Замечания отправлены модели на исправление") : "")}</li>`);
     } else if (st.step === "final" && st.status === "не знаю") {
-      items.push(`<li class="warn"><b>Итог</b><div class="check">${esc(st.message || "Проверки не пройдены — система честно отвечает «не знаю»")}</div></li>`);
+      items.push(`<li class="warn"><span class="dot">${svg("alert")}</span><b>Итог</b>
+        <div class="check">${esc(st.message || "Проверки не пройдены — система честно отвечает «не знаю»")}</div></li>`);
     } else if (st.step === "error") {
-      items.push(`<li class="bad"><b>Ошибка</b><div class="check bad">${esc(st.message)}</div></li>`);
+      items.push(`<li class="bad"><span class="dot">${svg("x")}</span><b>Ошибка</b>${check("bad", "x", esc(st.message))}</li>`);
     }
   }
   return `<ul class="steps">${items.join("")}</ul>`;
 }
 
 $("go").onclick = async () => {
-  const q = $("q").value.trim(); if (!q) return;
-  $("go").disabled = true; $("go").textContent = "Думаю и проверяю…";
-  $("out").innerHTML = "";
+  const q = $("q").value.trim();
+  if (!q) { $("q").focus(); return; }
+  $("go").disabled = true; $("go").innerHTML = `<span class="spin" aria-hidden="true"></span>Думаю и проверяю…`;
+  $("out").innerHTML = `<section class="card empty">${svg("search", 1.6)}<div><b>Ищу ответ и проверяю его</b>
+    <p>Обычно 10–30 секунд: модель рассуждает, затем код сверяет цитату, числа и расчёты.</p></div></section>`;
   try {
     const r = await fetch("/api/ask", { method:"POST", headers:{"Content-Type":"application/json"},
       body: JSON.stringify({ dataset:$("ds").value, package:$("pk").value, question:q }) });
     const d = await r.json();
     if (d.error) throw new Error(d.error);
+    const sc = statusClass(d.status);
+    const answer = d.answer || (d.status === "нет в документах" ? "В документах этого нет" : d.status === "не знаю" ? "Не удалось подтвердить ответ" : "");
+    $("model-note").textContent = `Модель: ${d.model}`;
     $("out").innerHTML = `
-      <div class="card">
-        <span class="status ${statusClass(d.status)}">${esc(d.status)}</span>
-        <div class="answer">${esc(d.answer || (d.status === "нет в документах" ? "В документах этого нет" : d.status === "не знаю" ? "Не удалось подтвердить ответ" : ""))}</div>
-        ${d.quote ? `<blockquote>${esc(d.quote)}<small>${esc(d.file)}</small></blockquote>` : ""}
-        ${d.warnings && d.warnings.length ? `<p class="warns">Трудные файлы: ${esc(d.warnings.join("; "))}</p>` : ""}
-        <div class="meta">Модель: ${esc(d.model)} · запросов к модели: ${d.calls}</div>
-      </div>
-      <div class="card"><h3 style="margin-top:0">Как система проверяла ответ</h3>${renderTrace(d.trace)}</div>`;
+      <section class="card appear" aria-label="Ответ">
+        <span class="pill ${sc}">${svg(STATUS_ICON[sc] || "dash")}${esc(d.status)}</span>
+        <p class="question">${esc(q)}</p>
+        <p class="answer">${esc(answer)}</p>
+        ${d.quote ? `<div class="quote"><div class="quote-head"><span>Цитата из документа</span><span>${esc(d.file)}</span></div><p>${esc(d.quote)}</p></div>` : ""}
+        ${d.warnings && d.warnings.length ? `<p class="warns">${svg("alert")}<span>Трудные файлы: ${esc(d.warnings.join("; "))}</span></p>` : ""}
+        <p class="meta">Запросов к модели: ${d.calls}</p>
+      </section>
+      <section class="card appear" aria-labelledby="trace-h"><h2 id="trace-h">Как система проверяла ответ</h2>${renderTrace(d.trace)}</section>`;
   } catch (e) {
-    $("out").innerHTML = `<div class="card"><b>Ошибка:</b> ${esc(e.message)}</div>`;
+    $("out").innerHTML = `<section class="card error">${svg("alert")}<div><b>Не получилось получить ответ</b>
+      <span>${esc(e.message)}. Проверьте интернет и повторите вопрос — если сервер модели перегружен, система подождёт и повторит.</span></div></section>`;
   } finally { $("go").disabled = false; $("go").textContent = "Спросить"; }
 };
 init();
 </script>
-</main></body></html>
+</body></html>
