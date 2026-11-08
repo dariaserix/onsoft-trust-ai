@@ -128,29 +128,42 @@ class Solver:
                 if cand is not None and cand.status == "нет в документах" and cfg["absent_check"] and not absent_checked:
                     absent_checked = True
                     found = self.absent_check(qid, question, pkg)
+                    if not found:
+                        step.setdefault("info", []).append(
+                            "Перепроверка по полному тексту всех документов (отдельный запрос): сведений нет — "
+                            "«нет в документах» подтверждено")
                     if found:
+                        # найденные предложения показываем модели как фрагменты документа (с номерами): поиск мог
+                        # не выдать их, а модели велено цитировать только выданные фрагменты
+                        nq = norm(found["quote"])
+                        extra = [x for x in pkg.sentences if not x.injection and len(norm(x.text)) >= 8
+                                 and (norm(x.text) in nq or nq in norm(x.text))][:3]
+                        shown = "".join(f"\n[{x.sid}] ({x.file}) {x.text}" for x in extra)
                         issues.append(C.Issue("absent", f"Ты ответил «нет в документах», но в документе {found['file']} "
-                                                        f"есть: «{found['quote']}». Перепроверь и процитируй."))
+                                                        f"есть: «{found['quote']}». Это часть документов закупки, "
+                                                        f"её можно цитировать:{shown}\nПерепроверь, отвечает ли она на "
+                                                        f"вопрос, и если да — процитируй."))
                         events.append({"critic": "absent", "caught": True,
                                        "message": f"Модель сказала «нет в документах», а проверка нашла: «{found['quote'][:80]}»."})
                         cand = None
-                elif cand is not None and cand.status == "нет в документах" and found:
+                elif cand is not None and cand.status in ("нет в документах", "не знаю") and found:
                     # Модель упорствует, хотя ответ найден дословной цитатой. «Нет в документах» здесь — заведомая
                     # неправда, её не принимаем. Найденный фрагмент проходит все те же проверки; не прошёл — «не знаю».
                     alt, alt_issues, _ = self.evaluate(qid, question, pkg, {
                         "status": "ответ", "answer": str(found.get("value") or ""),
                         "mentions": [{"file": found["file"], "quote": found["quote"], "value": str(found.get("value") or "")}]})
+                    said = cand.status
                     if alt is not None and not alt_issues and alt.status in ("ответ", "расхождение"):
                         cand, issues = alt, []
                         events.append({"critic": "absent", "caught": True,
-                                       "message": "Модель повторила «нет в документах», хотя ответ найден. Взят найденный "
+                                       "message": f"Модель ответила «{said}», хотя ответ найден. Взят найденный "
                                                   "фрагмент, он прошёл все проверки."})
                     else:
                         cand = None
                         issues.append(C.Issue("absent", f"Ответ есть в документе {found['file']}: «{found['quote']}». "
                                                         f"«Нет в документах» не принимается."))
                         events.append({"critic": "absent", "caught": True,
-                                       "message": "Модель повторила «нет в документах», хотя ответ найден; "
+                                       "message": f"Модель ответила «{said}», хотя ответ найден; "
                                                   "найденный фрагмент не прошёл проверки → «не знаю»."})
                 # ИИ-критик
                 if cand is not None and not issues and cfg["llm_critic"] and cand.status in ("ответ", "расхождение"):

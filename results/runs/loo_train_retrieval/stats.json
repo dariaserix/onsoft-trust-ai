@@ -4,10 +4,10 @@
   "prompt_tokens": 624685,
   "completion_tokens": 74878,
   "seconds": 0.0,
-  "model_seconds": 1332.159999999998,
+  "model_seconds": 1332.160000000009,
   "questions": 71,
   "wall_seconds": 0.2,
   "model": "openai:qwen3-6-practice",
   "config": "loo_train_retrieval",
-  "started": "2026-11-08 17:45:41"
+  "started": "2026-11-08 18:28:55"
 }

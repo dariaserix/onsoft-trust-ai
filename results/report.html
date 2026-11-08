@@ -140,7 +140,7 @@ footer { color:var(--muted); font-size:13px; margin-top:40px }
 <p class="sub">Та же модель, меняется только режим «рассуждать перед ответом». Индекс: модель как есть → наша система.</p>
 <div class="card"><table>
   <tr><th>Режим</th><th class="num">Учебный набор</th><th class="num">Другие формулировки</th><th class="num">Секунд модели на вопрос</th></tr>
-  <tr><td>с рассуждениями (итоговый режим)</td><td class="num">94.4 → <b>100.0</b></td><td class="num">94.4 → <b>100.0</b></td><td class="num">22.9</td></tr><tr><td>без рассуждений</td><td class="num">77.5 → <b>100.0</b></td><td class="num">77.5 → <b>100.0</b></td><td class="num">3.7</td></tr>
+  <tr><td>с рассуждениями (итоговый режим)</td><td class="num">94.4 → <b>100.0</b></td><td class="num">94.4 → <b>100.0</b></td><td class="num">20.8</td></tr><tr><td>без рассуждений</td><td class="num">77.5 → <b>100.0</b></td><td class="num">77.5 → <b>100.0</b></td><td class="num">3.9</td></tr>
 </table></div>
 
 <h2>Работает ли на том, на чём её не настраивали</h2>
@@ -157,20 +157,10 @@ footer { color:var(--muted); font-size:13px; margin-top:40px }
 
 <h2>Вклад каждой проверки</h2>
 <p class="sub">Выключаем одну проверку в итоговой системе и смотрим, насколько упадёт индекс доверия. Ноль — на этих вопросах проверка не понадобилась.</p>
-<div class="card"><table><tr><th>Что выключили</th><th class="num">учебный набор</th><th class="num">другие формулировки</th></tr><tr><td>без: Проверка цитат</td><td class="num"><span class="neg">-7.0</span> <span class=lie-t>(+2 обм.)</span></td><td class="num"><span class="neg">-14.1</span> <span class=lie-t>(+5 обм.)</span></td></tr><tr><td>без: Проверка чисел и единиц</td><td class="num"><span class="">+0.0</span></td><td class="num"><span class="">+0.0</span></td></tr><tr><td>без: Расчёт кодом</td><td class="num"><span class="neg">-9.9</span> <span class=lie-t>(+1 обм.)</span></td><td class="num"><span class="neg">-11.3</span> <span class=lie-t>(+2 обм.)</span></td></tr><tr><td>без: Критик изменений извещения</td><td class="num"><span class="">+0.0</span></td><td class="num"><span class="">+0.0</span></td></tr><tr><td>без: Критик расхождений</td><td class="num"><span class="">+0.0</span></td><td class="num"><span class="">+0.0</span></td></tr><tr><td>без: Критик «да/нет» и отрицаний</td><td class="num"><span class="">+0.0</span></td><td class="num"><span class="">+0.0</span></td></tr><tr><td>без: Перепроверка «нет в документах»</td><td class="num"><span class="">+0.0</span></td><td class="num"><span class="neg">-8.5</span> <span class=lie-t>(+3 обм.)</span></td></tr><tr><td>без: Агентный цикл (исправление по замечаниям)</td><td class="num"><span class="">+0.0</span></td><td class="num"><span class="neg">-4.2</span></td></tr><tr><td>без: Поиск нужных кусков документа</td><td class="num"><span class="">+0.0</span></td><td class="num"><span class="neg">-1.4</span></td></tr></table></div>
+<div class="card"><table><tr><th>Что выключили</th><th class="num">учебный набор</th><th class="num">другие формулировки</th></tr><tr><td>без: Проверка цитат</td><td class="num"><span class="neg">-7.0</span> <span class=lie-t>(+2 обм.)</span></td><td class="num"><span class="neg">-11.3</span> <span class=lie-t>(+4 обм.)</span></td></tr><tr><td>без: Проверка чисел и единиц</td><td class="num"><span class="">+0.0</span></td><td class="num"><span class="">+0.0</span></td></tr><tr><td>без: Расчёт кодом</td><td class="num"><span class="neg">-9.9</span> <span class=lie-t>(+1 обм.)</span></td><td class="num"><span class="neg">-11.3</span> <span class=lie-t>(+2 обм.)</span></td></tr><tr><td>без: Критик изменений извещения</td><td class="num"><span class="">+0.0</span></td><td class="num"><span class="">+0.0</span></td></tr><tr><td>без: Критик расхождений</td><td class="num"><span class="">+0.0</span></td><td class="num"><span class="">+0.0</span></td></tr><tr><td>без: Критик «да/нет» и отрицаний</td><td class="num"><span class="">+0.0</span></td><td class="num"><span class="">+0.0</span></td></tr><tr><td>без: Перепроверка «нет в документах»</td><td class="num"><span class="">+0.0</span></td><td class="num"><span class="">+0.0</span></td></tr><tr><td>без: Агентный цикл (исправление по замечаниям)</td><td class="num"><span class="">+0.0</span></td><td class="num"><span class="">+0.0</span></td></tr><tr><td>без: Поиск нужных кусков документа</td><td class="num"><span class="">+0.0</span></td><td class="num"><span class="neg">-1.4</span></td></tr></table></div>
 
 <h2>Обманы, которые система поймала</h2>
 <article class="case">
-  <div class="case-q"><span class="pill">P02-07</span> Когда истекает срок подачи заявок (дата и время)? <span class="src">переформулированные вопросы</span></div>
-  <div class="case-grid">
-    <div><h4>Было (модель без проверок)</h4><p>ответ: <b>20.11.2026 в 09:00 по московскому времени</b></p></div>
-    <div><h4>Модель сначала ответила</h4><p>нет в документах: <b>—</b></p></div>
-    <div><h4>Итог системы</h4><p>ответ: <b>20.11.2026 09:00</b>
-      <span class="verdict v-ok">верно</span></p></div>
-  </div>
-  <ul class="caught"><li><b>Перепроверка «нет в документах»:</b> Модель сказала «нет в документах», а проверка нашла: «Заявки принимаются до 09:00 по московскому времени 20.11.2026.».</li></ul>
-  <p class="truth">Правильно: ответ 20.11.2026 / 09:00</p>
-</article><article class="case">
   <div class="case-q"><span class="pill">H01-05</span> Сколько рублей составит обеспечение исполнения контракта, если контракт заключат по начальной (максимальной) цене? <span class="src">трудные файлы</span></div>
   <div class="case-grid">
     <div><h4>Было (модель без проверок)</h4><p>ответ: <b>90 000,00 рублей</b></p></div>
@@ -201,36 +191,6 @@ footer { color:var(--muted); font-size:13px; margin-top:40px }
   <ul class="caught"><li><b>Критик цитат:</b> Модель исказила цитату («Участник закупки должен иметь действующие сведения о наличии лицензии »). Взят точный текст фрагмента S19.</li></ul>
   <p class="truth">Правильно: ответ техническ / конфиденциальн</p>
 </article><article class="case">
-  <div class="case-q"><span class="pill">P03-07</span> Когда истекает срок подачи заявок (дата и время)? <span class="src">переформулированные вопросы</span></div>
-  <div class="case-grid">
-    <div><h4>Было (модель без проверок)</h4><p>ответ: <b>26.11.2026 в 10:00 по московскому времени</b></p></div>
-    <div><h4>Модель сначала ответила</h4><p>нет в документах: <b>—</b></p></div>
-    <div><h4>Итог системы</h4><p>ответ: <b>26.11.2026 10:00</b>
-      <span class="verdict v-ok">верно</span></p></div>
-  </div>
-  <ul class="caught"><li><b>Перепроверка «нет в документах»:</b> Модель сказала «нет в документах», а проверка нашла: «Заявки принимаются до 10:00 по московскому времени 26.11.2026.».</li></ul>
-  <p class="truth">Правильно: ответ 26.11.2026 / 10:00</p>
-</article><article class="case">
-  <div class="case-q"><span class="pill">P04-10</span> Когда истекает срок подачи заявок (дата и время)? <span class="src">переформулированные вопросы</span></div>
-  <div class="case-grid">
-    <div><h4>Было (модель без проверок)</h4><p>ответ: <b>25.11.2026 в 12:00 по московскому времени</b></p></div>
-    <div><h4>Модель сначала ответила</h4><p>нет в документах: <b>—</b></p></div>
-    <div><h4>Итог системы</h4><p>ответ: <b>25.11.2026 12:00</b>
-      <span class="verdict v-ok">верно</span></p></div>
-  </div>
-  <ul class="caught"><li><b>Перепроверка «нет в документах»:</b> Модель сказала «нет в документах», а проверка нашла: «Заявки принимаются до 12:00 по московскому времени 25.11.2026.».</li></ul>
-  <p class="truth">Правильно: ответ 25.11.2026 / 12:00</p>
-</article><article class="case">
-  <div class="case-q"><span class="pill">P02-07</span> Когда истекает срок подачи заявок (дата и время)? <span class="src">без рассуждений, другие формулировки</span></div>
-  <div class="case-grid">
-    <div><h4>Было (модель без проверок)</h4><p>ответ: <b>20.11.2026 в 09:00 по московскому времени</b></p></div>
-    <div><h4>Модель сначала ответила</h4><p>нет в документах: <b>—</b></p></div>
-    <div><h4>Итог системы</h4><p>ответ: <b>20.11.2026 09:00</b>
-      <span class="verdict v-ok">верно</span></p></div>
-  </div>
-  <ul class="caught"><li><b>Перепроверка «нет в документах»:</b> Модель сказала «нет в документах», а проверка нашла: «Заявки принимаются до 09:00 по московскому времени 20.11.2026.».</li><li><b>Перепроверка «нет в документах»:</b> Модель повторила «нет в документах», хотя ответ найден. Взят найденный фрагмент, он прошёл все проверки.</li></ul>
-  <p class="truth">Правильно: ответ 20.11.2026 / 09:00</p>
-</article><article class="case">
   <div class="case-q"><span class="pill">P02-09</span> Сколько месяцев действует гарантия на результаты работ? <span class="src">без рассуждений, другие формулировки</span></div>
   <div class="case-grid">
     <div><h4>Было (модель без проверок)</h4><p>нет в документах: <b>В предоставленных документах не указан срок действия гарантии на результаты работ. В проекте контракта (пункт 3.7) указано, что обеспечение гарантийных обязательств не требуется, однако конкретный срок гарантии не прописан.</b></p></div>
@@ -241,31 +201,31 @@ footer { color:var(--muted); font-size:13px; margin-top:40px }
   <ul class="caught"><li><b>Критик «да/нет»:</b> Модель ответила «не установлено», сославшись на другой параметр: цитата касается обеспечения гарантийных обязательств (финансового обеспечения), а не срока действия гарантии</li></ul>
   <p class="truth">Правильно: нет в документах </p>
 </article><article class="case">
-  <div class="case-q"><span class="pill">P03-07</span> Когда истекает срок подачи заявок (дата и время)? <span class="src">без рассуждений, другие формулировки</span></div>
+  <div class="case-q"><span class="pill">P04-05</span> Какую лицензию должен иметь участник закупки? <span class="src">переформулированные вопросы</span></div>
   <div class="case-grid">
-    <div><h4>Было (модель без проверок)</h4><p>ответ: <b>26.11.2026 в 10:00 по московскому времени</b></p></div>
-    <div><h4>Модель сначала ответила</h4><p>нет в документах: <b>—</b></p></div>
-    <div><h4>Итог системы</h4><p>ответ: <b>10:00 по московскому времени 26.11.2026</b>
+    <div><h4>Было (модель без проверок)</h4><p>ответ: <b>Участник закупки должен иметь действующие сведения о наличии лицензии на деятельность по технической защите конфиденциальной информации.</b></p></div>
+    <div><h4>Модель сначала ответила</h4><p>ответ: <b>лицензию на деятельность по технической защиты конфиденциальной информации</b></p></div>
+    <div><h4>Итог системы</h4><p>ответ: <b>лицензию на деятельность по технической защиты конфиденциальной информации</b>
       <span class="verdict v-ok">верно</span></p></div>
   </div>
-  <ul class="caught"><li><b>Перепроверка «нет в документах»:</b> Модель сказала «нет в документах», а проверка нашла: «Заявки принимаются до 10:00 по московскому времени 26.11.2026.».</li><li><b>Перепроверка «нет в документах»:</b> Модель повторила «нет в документах», хотя ответ найден. Взят найденный фрагмент, он прошёл все проверки.</li></ul>
-  <p class="truth">Правильно: ответ 26.11.2026 / 10:00</p>
+  <ul class="caught"><li><b>Критик цитат:</b> Модель исказила цитату («Участник закупки должен иметь действующие сведения о наличии лицензии »). Взят точный текст фрагмента S19.</li></ul>
+  <p class="truth">Правильно: ответ техническ / конфиденциальн</p>
 </article><article class="case">
-  <div class="case-q"><span class="pill">P04-10</span> Когда истекает срок подачи заявок (дата и время)? <span class="src">без рассуждений, другие формулировки</span></div>
+  <div class="case-q"><span class="pill">P06-06</span> Какую лицензию должен иметь участник закупки? <span class="src">переформулированные вопросы</span></div>
   <div class="case-grid">
-    <div><h4>Было (модель без проверок)</h4><p>ответ: <b>25.11.2026 до 12:00 по московскому времени</b></p></div>
-    <div><h4>Модель сначала ответила</h4><p>нет в документах: <b>—</b></p></div>
-    <div><h4>Итог системы</h4><p>ответ: <b>25.11.2026 12:00</b>
+    <div><h4>Было (модель без проверок)</h4><p>расхождение: <b>В извещении указано, что требование о наличии лицензии ФСБ России не установлено, однако в требованиях к заявке участник должен иметь действующие сведения о наличии лицензии на деятельность по технической защите конфиденциальной информации.</b></p></div>
+    <div><h4>Модель сначала ответила</h4><p>ответ: <b>лицензия на деятельность по технической защиты конфиденциальной информации</b></p></div>
+    <div><h4>Итог системы</h4><p>ответ: <b>лицензия на деятельность по технической защиты конфиденциальной информации</b>
       <span class="verdict v-ok">верно</span></p></div>
   </div>
-  <ul class="caught"><li><b>Перепроверка «нет в документах»:</b> Модель сказала «нет в документах», а проверка нашла: «Заявки принимаются до 12:00 по московскому времени 25.11.2026.».</li><li><b>Перепроверка «нет в документах»:</b> Модель повторила «нет в документах», хотя ответ найден. Взят найденный фрагмент, он прошёл все проверки.</li></ul>
-  <p class="truth">Правильно: ответ 25.11.2026 / 12:00</p>
+  <ul class="caught"><li><b>Критик цитат:</b> Модель исказила цитату («лицензии на деятельность по технической защиты конфиденциальной информ»). Взят точный текст фрагмента S104.</li></ul>
+  <p class="truth">Правильно: ответ техническ / конфиденциальн</p>
 </article>
 
 <h2>Стоимость</h2>
 <div class="card"><table>
   <tr><th>Шаг</th><th class="num">Запросов к модели</th><th class="num">Токенов</th><th class="num">Время ответов модели, с</th></tr>
-  <tr><td>Было: модель «как есть»</td><td class="num">71</td><td class="num">458806</td><td class="num">1111</td></tr><tr><td>Правила в промпте</td><td class="num">72</td><td class="num">634363</td><td class="num">1205</td></tr><tr><td>+ нужные куски документа</td><td class="num">72</td><td class="num">151250</td><td class="num">1502</td></tr><tr><td>+ проверка цитат</td><td class="num">72</td><td class="num">151250</td><td class="num">1502</td></tr><tr><td>+ проверка чисел и расчёт кодом</td><td class="num">72</td><td class="num">151250</td><td class="num">1502</td></tr><tr><td>+ критик изменений извещения</td><td class="num">72</td><td class="num">151250</td><td class="num">1502</td></tr><tr><td>+ критик расхождений</td><td class="num">74</td><td class="num">152322</td><td class="num">1510</td></tr><tr><td>+ критик «да/нет» и отрицаний</td><td class="num">75</td><td class="num">152832</td><td class="num">1518</td></tr><tr><td>+ перепроверка «нет в документах»</td><td class="num">85</td><td class="num">216450</td><td class="num">1629</td></tr><tr><td>+ агентный цикл</td><td class="num">85</td><td class="num">216450</td><td class="num">1629</td></tr><tr><td>+ ИИ-критик</td><td class="num">146</td><td class="num">247054</td><td class="num">1865</td></tr>
+  <tr><td>Было: модель «как есть»</td><td class="num">71</td><td class="num">458806</td><td class="num">1111</td></tr><tr><td>Правила в промпте</td><td class="num">72</td><td class="num">634363</td><td class="num">1205</td></tr><tr><td>+ нужные куски документа</td><td class="num">72</td><td class="num">153578</td><td class="num">1570</td></tr><tr><td>+ проверка цитат</td><td class="num">72</td><td class="num">153578</td><td class="num">1570</td></tr><tr><td>+ проверка чисел и расчёт кодом</td><td class="num">72</td><td class="num">153578</td><td class="num">1570</td></tr><tr><td>+ критик изменений извещения</td><td class="num">72</td><td class="num">153578</td><td class="num">1570</td></tr><tr><td>+ критик расхождений</td><td class="num">74</td><td class="num">154650</td><td class="num">1578</td></tr><tr><td>+ критик «да/нет» и отрицаний</td><td class="num">75</td><td class="num">155160</td><td class="num">1585</td></tr><tr><td>+ перепроверка «нет в документах»</td><td class="num">85</td><td class="num">218778</td><td class="num">1697</td></tr><tr><td>+ агентный цикл</td><td class="num">85</td><td class="num">218778</td><td class="num">1697</td></tr><tr><td>+ ИИ-критик</td><td class="num">146</td><td class="num">249196</td><td class="num">1931</td></tr>
 </table></div>
 <footer>Замер официальным check.py организатора на одной и той же модели. Система не видит правильных ответов: их использует только оценщик.</footer>
 </main></body></html>

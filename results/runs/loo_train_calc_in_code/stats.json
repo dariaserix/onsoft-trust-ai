@@ -1,13 +1,13 @@
 {
   "calls": 93,
   "cached": 93,
-  "prompt_tokens": 164053,
-  "completion_tokens": 85137,
+  "prompt_tokens": 164494,
+  "completion_tokens": 87024,
   "seconds": 0.0,
-  "model_seconds": 1969.67,
+  "model_seconds": 2037.2399999999998,
   "questions": 71,
   "wall_seconds": 0.2,
   "model": "openai:qwen3-6-practice",
   "config": "loo_train_calc_in_code",
-  "started": "2026-11-08 17:45:38"
+  "started": "2026-11-08 18:28:52"
 }

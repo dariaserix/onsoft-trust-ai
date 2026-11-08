@@ -8,8 +8,8 @@
     "lies": 0,
     "index": 100.0,
     "calls": 85,
-    "tokens": 216450,
-    "model_seconds": 1629.3
+    "tokens": 218778,
+    "model_seconds": 1696.9
   },
   {
     "title": "Проверка цитат",
@@ -22,9 +22,9 @@
     "careful": 1,
     "lies": 2,
     "index": 93.0,
-    "calls": 91,
-    "tokens": 244214,
-    "model_seconds": 1950.1
+    "calls": 90,
+    "tokens": 240669,
+    "model_seconds": 2080.7
   },
   {
     "title": "Проверка чисел и единиц",
@@ -37,8 +37,8 @@
     "lies": 0,
     "index": 100.0,
     "calls": 85,
-    "tokens": 216450,
-    "model_seconds": 1629.3
+    "tokens": 218778,
+    "model_seconds": 1696.9
   },
   {
     "title": "Расчёт кодом",
@@ -51,8 +51,8 @@
     "lies": 1,
     "index": 90.1,
     "calls": 93,
-    "tokens": 249190,
-    "model_seconds": 1969.7
+    "tokens": 251518,
+    "model_seconds": 2037.2
   },
   {
     "title": "Критик изменений извещения",
@@ -65,8 +65,8 @@
     "lies": 0,
     "index": 100.0,
     "calls": 85,
-    "tokens": 216450,
-    "model_seconds": 1629.3
+    "tokens": 218778,
+    "model_seconds": 1696.9
   },
   {
     "title": "Критик расхождений",
@@ -80,8 +80,8 @@
     "lies": 0,
     "index": 100.0,
     "calls": 83,
-    "tokens": 215378,
-    "model_seconds": 1621.0
+    "tokens": 217706,
+    "model_seconds": 1688.6
   },
   {
     "title": "Критик «да/нет» и отрицаний",
@@ -94,8 +94,8 @@
     "lies": 0,
     "index": 100.0,
     "calls": 84,
-    "tokens": 215940,
-    "model_seconds": 1622.0
+    "tokens": 218268,
+    "model_seconds": 1689.6
   },
   {
     "title": "Перепроверка «нет в документах»",
@@ -108,8 +108,8 @@
     "lies": 0,
     "index": 100.0,
     "calls": 75,
-    "tokens": 152832,
-    "model_seconds": 1517.6
+    "tokens": 155160,
+    "model_seconds": 1585.2
   },
   {
     "title": "Агентный цикл (исправление по замечаниям)",
@@ -122,8 +122,8 @@
     "lies": 0,
     "index": 100.0,
     "calls": 85,
-    "tokens": 216450,
-    "model_seconds": 1629.3
+    "tokens": 218778,
+    "model_seconds": 1696.9
   },
   {
     "title": "Поиск нужных кусков документа",

@@ -96,9 +96,10 @@ function renderTrace(trace) {
       const n = Number(st.step.split("#")[1]) + 1;
       const evs = (st.events || []).map(e => `<div class="check warn">⚠ ${esc(CRITIC[e.critic] || e.critic)}: ${esc(e.message)}</div>`).join("");
       const iss = (st.issues || []).map(i => `<div class="check bad">✗ ${esc(CRITIC[i.critic] || i.critic)}: ${esc(i.message)}</div>`).join("");
+      const info = (st.info || []).map(t => `<div class="check ok">✓ ${esc(t)}</div>`).join("");
       const ok = (st.issues || []).length === 0;
       let raw = ""; try { const j = JSON.parse(st.raw.slice(st.raw.indexOf("{"), st.raw.lastIndexOf("}") + 1)); raw = `${j.status || ""}: ${j.answer || ""}`; } catch (e) {}
-      items.push(`<li class="${ok ? "good" : "bad"}"><b>Попытка ${n}: модель ответила</b><div class="raw">${esc(raw)}</div>${evs}${iss}
+      items.push(`<li class="${ok ? "good" : "bad"}"><b>Попытка ${n}: модель ответила</b><div class="raw">${esc(raw)}</div>${evs}${iss}${info}
         ${ok ? `<div class="check ok">✓ Все проверки пройдены</div>` : (n < 3 ? `<div class="check">→ замечания отправлены модели на исправление</div>` : "")}</li>`);
     } else if (st.step === "final" && st.status === "не знаю") {
       items.push(`<li class="warn"><b>Итог</b><div class="check">${esc(st.message || "Проверки не пройдены — система честно отвечает «не знаю»")}</div></li>`);

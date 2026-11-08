@@ -1,13 +1,13 @@
 {
   "calls": 72,
   "cached": 72,
-  "prompt_tokens": 90909,
-  "completion_tokens": 60341,
+  "prompt_tokens": 91350,
+  "completion_tokens": 62228,
   "seconds": 0.0,
-  "model_seconds": 1502.0099999999975,
+  "model_seconds": 1569.5799999999972,
   "questions": 71,
   "wall_seconds": 0.2,
   "model": "openai:qwen3-6-practice",
   "config": "05_amendments",
-  "started": "2026-11-08 17:45:24"
+  "started": "2026-11-08 18:23:19"
 }

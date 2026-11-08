@@ -18,3 +18,5 @@ data/control/*
 Thumbs.db
 # логи прогонов (могут содержать служебные ответы сервера)
 results/*.log
+# настройки Claude Code на этой машине
+.claude/
