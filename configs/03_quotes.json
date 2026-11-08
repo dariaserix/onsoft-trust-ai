@@ -1,0 +1,17 @@
+{
+  "name": "03_quotes",
+  "title": "+ проверка цитат",
+  "description": "Код проверяет, что цитата дословно есть в документе; нет — «не знаю»",
+  "retrieval": true,
+  "quote_check": true,
+  "quote_repair": true,
+  "number_check": false,
+  "calc_in_code": false,
+  "amendment_check": false,
+  "discrepancy_check": false,
+  "discrepancy_llm": false,
+  "yesno_check": false,
+  "absent_check": false,
+  "llm_critic": false,
+  "max_retries": 0
+}

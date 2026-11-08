@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ИИ, который не обманывает</title>
+<style>
+:root { --bg:#f6f7f9; --card:#fff; --ink:#14171f; --muted:#5d6472; --line:#e3e6ec;
+  --ok:#1f9d63; --unk:#8a92a1; --lie:#d9443b; --warn:#c77700; --accent:#2f5bea; --quote:#f1f4ff; }
+@media (prefers-color-scheme: dark) { :root { --bg:#0f1115; --card:#181b22; --ink:#e9ecf2; --muted:#9aa2b1;
+  --line:#2a2f3a; --quote:#1d2333; } }
+* { box-sizing:border-box }
+body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif }
+main { max-width:920px; margin:0 auto; padding:32px 16px 64px }
+header { display:flex; justify-content:space-between; align-items:baseline; gap:16px; flex-wrap:wrap }
+h1 { font-size:28px; margin:0 } a { color:var(--accent) }
+.sub { color:var(--muted); margin:4px 0 24px }
+.card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px; margin-bottom:16px }
+.row { display:grid; grid-template-columns:1fr 1fr; gap:12px }
+label { display:block; font-size:13px; color:var(--muted); margin:0 0 4px; font-weight:600 }
+select, textarea, button { font:inherit; width:100%; border:1px solid var(--line); border-radius:10px; padding:10px 12px;
+  background:var(--card); color:var(--ink) }
+textarea { min-height:72px; resize:vertical; margin-top:12px }
+button { background:var(--accent); color:#fff; border:0; font-weight:600; cursor:pointer; margin-top:12px }
+button:disabled { opacity:.6; cursor:wait }
+.status { display:inline-block; border-radius:8px; padding:2px 10px; color:#fff; font-weight:600; font-size:14px }
+.s-ответ { background:var(--ok) } .s-расхождение { background:var(--warn) } .s-нет { background:var(--accent) } .s-не { background:var(--unk) }
+.answer { font-size:24px; font-weight:700; margin:10px 0 }
+blockquote { margin:12px 0 0; background:var(--quote); border-left:4px solid var(--accent); padding:10px 14px; border-radius:6px }
+blockquote small { display:block; color:var(--muted); margin-top:6px }
+.steps { list-style:none; margin:0; padding:0 }
+.steps li { border-left:2px solid var(--line); padding:0 0 14px 16px; position:relative }
+.steps li::before { content:""; position:absolute; left:-7px; top:6px; width:12px; height:12px; border-radius:50%; background:var(--line) }
+.steps li.good::before { background:var(--ok) } .steps li.bad::before { background:var(--lie) } .steps li.warn::before { background:var(--warn) }
+.steps b { display:block }
+.check { font-size:14px; margin:2px 0 } .check.ok { color:var(--ok) } .check.bad { color:var(--lie) } .check.warn { color:var(--warn) }
+.raw { font-size:13px; color:var(--muted) }
+.warns { color:var(--warn); font-size:14px }
+.meta { color:var(--muted); font-size:13px; margin-top:8px }
+@media (max-width:640px) { .row { grid-template-columns:1fr } }
+</style>
+</head>
+<body><main>
+<header><h1>ИИ, который не обманывает</h1><a href="/report" target="_blank">Дашборд «было/стало» →</a></header>
+<p class="sub">Задайте вопрос по документам закупки. Система отвечает только тем, что может подтвердить цитатой, иначе честно говорит «не знаю».</p>
+
+<div class="card">
+  <div class="row">
+    <div><label>Набор</label><select id="ds"></select></div>
+    <div><label>Закупка</label><select id="pk"></select></div>
+  </div>
+  <label style="margin-top:12px">Готовые вопросы</label>
+  <select id="sample"><option value="">— выбрать —</option></select>
+  <textarea id="q" placeholder="Например: Какой размер обеспечения заявки, в рублях?"></textarea>
+  <button id="go">Спросить</button>
+</div>
+
+<div id="out"></div>
+
+<script>
+const CRITIC = { quote:"Критик цитат", number:"Критик чисел", calc:"Расчёт кодом", amendment:"Критик изменений извещения",
+  discrepancy:"Критик расхождений", yesno:"Критик «да/нет»", absent:"Перепроверка «нет в документах»",
+  llm_critic:"ИИ-критик", format:"Формат ответа", injection:"Защита от инструкций в тексте" };
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let DATA = {};
+
+async function init() {
+  DATA = await (await fetch("/api/datasets")).json();
+  $("ds").innerHTML = Object.keys(DATA).map(d => `<option>${esc(d)}</option>`).join("");
+  fillPk();
+}
+function fillPk() {
+  const d = DATA[$("ds").value] || {packages:[], questions:[]};
+  $("pk").innerHTML = d.packages.map(p => `<option>${esc(p)}</option>`).join("");
+  fillSamples();
+}
+function fillSamples() {
+  const d = DATA[$("ds").value] || {questions:[]};
+  const qs = d.questions.filter(q => q.package === $("pk").value);
+  $("sample").innerHTML = `<option value="">— выбрать —</option>` + qs.map(q => `<option value="${esc(q.question)}">${esc(q.id)}: ${esc(q.question)}</option>`).join("");
+}
+$("ds").onchange = fillPk; $("pk").onchange = fillSamples;
+$("sample").onchange = () => { if ($("sample").value) $("q").value = $("sample").value; };
+
+function statusClass(s) { return "s-" + (s || "не").split(" ")[0]; }
+
+function renderTrace(trace) {
+  const items = [];
+  for (const st of trace) {
+    if (st.step === "retrieval") {
+      items.push(`<li class="good"><b>Поиск по документам</b><div class="check">Выбрано ${st.sids.length} относящихся к вопросу фрагментов (${st.chars} символов) вместо всего документа</div></li>`);
+    } else if (st.step === "injection") {
+      items.push(`<li class="warn"><b>Защита от инструкций в тексте</b><div class="check warn">${esc(st.message)}</div></li>`);
+    } else if (st.step && st.step.startsWith("answer")) {
+      const n = Number(st.step.split("#")[1]) + 1;
+      const evs = (st.events || []).map(e => `<div class="check warn">⚠ ${esc(CRITIC[e.critic] || e.critic)}: ${esc(e.message)}</div>`).join("");
+      const iss = (st.issues || []).map(i => `<div class="check bad">✗ ${esc(CRITIC[i.critic] || i.critic)}: ${esc(i.message)}</div>`).join("");
+      const ok = (st.issues || []).length === 0;
+      let raw = ""; try { const j = JSON.parse(st.raw.slice(st.raw.indexOf("{"), st.raw.lastIndexOf("}") + 1)); raw = `${j.status || ""}: ${j.answer || ""}`; } catch (e) {}
+      items.push(`<li class="${ok ? "good" : "bad"}"><b>Попытка ${n}: модель ответила</b><div class="raw">${esc(raw)}</div>${evs}${iss}
+        ${ok ? `<div class="check ok">✓ Все проверки пройдены</div>` : (n < 3 ? `<div class="check">→ замечания отправлены модели на исправление</div>` : "")}</li>`);
+    } else if (st.step === "final" && st.status === "не знаю") {
+      items.push(`<li class="warn"><b>Итог</b><div class="check">${esc(st.message || "Проверки не пройдены — система честно отвечает «не знаю»")}</div></li>`);
+    } else if (st.step === "error") {
+      items.push(`<li class="bad"><b>Ошибка</b><div class="check bad">${esc(st.message)}</div></li>`);
+    }
+  }
+  return `<ul class="steps">${items.join("")}</ul>`;
+}
+
+$("go").onclick = async () => {
+  const q = $("q").value.trim(); if (!q) return;
+  $("go").disabled = true; $("go").textContent = "Думаю и проверяю…";
+  $("out").innerHTML = "";
+  try {
+    const r = await fetch("/api/ask", { method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ dataset:$("ds").value, package:$("pk").value, question:q }) });
+    const d = await r.json();
+    if (d.error) throw new Error(d.error);
+    $("out").innerHTML = `
+      <div class="card">
+        <span class="status ${statusClass(d.status)}">${esc(d.status)}</span>
+        <div class="answer">${esc(d.answer || (d.status === "нет в документах" ? "В документах этого нет" : d.status === "не знаю" ? "Не удалось подтвердить ответ" : ""))}</div>
+        ${d.quote ? `<blockquote>${esc(d.quote)}<small>${esc(d.file)}</small></blockquote>` : ""}
+        ${d.warnings && d.warnings.length ? `<p class="warns">Трудные файлы: ${esc(d.warnings.join("; "))}</p>` : ""}
+        <div class="meta">Модель: ${esc(d.model)} · запросов к модели: ${d.calls}</div>
+      </div>
+      <div class="card"><h3 style="margin-top:0">Как система проверяла ответ</h3>${renderTrace(d.trace)}</div>`;
+  } catch (e) {
+    $("out").innerHTML = `<div class="card"><b>Ошибка:</b> ${esc(e.message)}</div>`;
+  } finally { $("go").disabled = false; $("go").textContent = "Спросить"; }
+};
+init();
+</script>
+</main></body></html>

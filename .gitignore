@@ -1,0 +1,18 @@
+# секреты
+.env
+certs/*.cer
+certs/*.crt
+certs/*.pem
+# окружение Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+# служебные результаты (кэш ответов модели и тестовый журнал)
+results/cache/
+results/test_journal.jsonl
+# контрольный набор кладётся в день защиты
+data/control/*
+!data/control/README.md
+.DS_Store
+Thumbs.db

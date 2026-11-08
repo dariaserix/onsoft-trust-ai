@@ -1,0 +1,17 @@
+{
+  "name": "02_retrieval",
+  "title": "+ нужные куски документа",
+  "description": "Модель видит только относящиеся к вопросу предложения",
+  "retrieval": true,
+  "quote_check": false,
+  "quote_repair": false,
+  "number_check": false,
+  "calc_in_code": false,
+  "amendment_check": false,
+  "discrepancy_check": false,
+  "discrepancy_llm": false,
+  "yesno_check": false,
+  "absent_check": false,
+  "llm_critic": false,
+  "max_retries": 0
+}

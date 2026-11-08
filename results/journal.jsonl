@@ -1,0 +1,2 @@
+{"ts": "2026-11-07 15:50:09", "qid": "", "purpose": "check", "model": "gigachat:GigaChat-2-Max", "cached": false, "prompt_tokens": 18, "completion_tokens": 2, "seconds": 3.56}
+{"ts": "2026-11-08 14:17:35", "qid": "", "purpose": "check", "model": "openai:qwen3-6-practice", "cached": false, "prompt_tokens": 61, "completion_tokens": 30, "seconds": 3.11}

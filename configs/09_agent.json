@@ -1,0 +1,17 @@
+{
+  "name": "09_agent",
+  "title": "+ агентный цикл",
+  "description": "Ошибка проверки → модель получает замечание и исправляется (до 2 раз), иначе «не знаю»",
+  "retrieval": true,
+  "quote_check": true,
+  "quote_repair": true,
+  "number_check": true,
+  "calc_in_code": true,
+  "amendment_check": true,
+  "discrepancy_check": true,
+  "discrepancy_llm": true,
+  "yesno_check": true,
+  "absent_check": true,
+  "llm_critic": false,
+  "max_retries": 2
+}

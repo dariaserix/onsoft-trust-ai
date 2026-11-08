@@ -1,0 +1,17 @@
+{
+  "name": "05_amendments",
+  "title": "+ критик изменений извещения",
+  "description": "Значение из старой редакции пункта не принимается",
+  "retrieval": true,
+  "quote_check": true,
+  "quote_repair": true,
+  "number_check": true,
+  "calc_in_code": true,
+  "amendment_check": true,
+  "discrepancy_check": false,
+  "discrepancy_llm": false,
+  "yesno_check": false,
+  "absent_check": false,
+  "llm_critic": false,
+  "max_retries": 0
+}

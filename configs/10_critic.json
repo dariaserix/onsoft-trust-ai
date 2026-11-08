@@ -1,0 +1,17 @@
+{
+  "name": "10_critic",
+  "title": "+ ИИ-критик",
+  "description": "Второй запрос проверяет, что цитата отвечает именно на этот вопрос",
+  "retrieval": true,
+  "quote_check": true,
+  "quote_repair": true,
+  "number_check": true,
+  "calc_in_code": true,
+  "amendment_check": true,
+  "discrepancy_check": true,
+  "discrepancy_llm": true,
+  "yesno_check": true,
+  "absent_check": true,
+  "llm_critic": true,
+  "max_retries": 2
+}
