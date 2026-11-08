@@ -294,6 +294,17 @@ def canonical_yesno(answer: str, question: str) -> str:
             return "да"
         if a.startswith("нет"):
             return "нет, не требуется"
-    elif re.search(r"\bне (установлен|требует|предусмотр)|отсутств", a) and not numbers(a):
+    elif is_pure_negation(a):
         return "нет, не установлено"
     return answer
+
+
+def is_pure_negation(a: str) -> bool:
+    """Ответ целиком — «требования нет» («не установлено», «нет, не требуется»).
+    Если в ответе есть ещё и содержание («лицензия на ...; лицензия ФСБ не установлена»), он не отрицание."""
+    a = norm(a)
+    if numbers(a) or not re.search(r"\bне (установлен|требует|предусмотр)|отсутств", a):
+        return False
+    rest = re.sub(r"\b(нет|не|установлен\w*|требу\w*|предусмотр\w*|отсутству\w*|требовани\w*|такое|такого|"
+                  r"документ\w*|в|извещени\w*|закупк\w*)\b", " ", a)
+    return len(re.findall(r"[a-zа-я]{3,}", rest)) <= 2

@@ -26,7 +26,7 @@ class ScriptedLLM(BaseLLM):
         super().__init__("test", use_cache=False, journal=ROOT / "results" / "test_journal.jsonl")
         self.replies = list(replies)
 
-    def _call(self, messages):
+    def _call(self, messages, think=True):
         r = self.replies.pop(0) if self.replies else '{"status": "не знаю"}'
         return (r if isinstance(r, str) else json.dumps(r, ensure_ascii=False)), 0, 0
 

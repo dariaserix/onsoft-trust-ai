@@ -83,20 +83,26 @@ class BaseLLM:
     def name(self):
         return f"{self.provider}:{self.model}"
 
-    def _key(self, messages):
-        blob = json.dumps([self.provider, self.model, self.temperature, self.max_tokens, messages],
-                          ensure_ascii=False, sort_keys=True)
+    def _key(self, messages, think=True):
+        parts = [self.provider, self.model, self.temperature, self.max_tokens, messages]
+        extra = getattr(self, "extra", None)
+        if extra:  # OPENAI_EXTRA_BODY меняет поведение модели: другой ключ кэша
+            parts.append(extra)
+        if not think:
+            parts.append("no_think")
+        blob = json.dumps(parts, ensure_ascii=False, sort_keys=True)
         return hashlib.sha256(blob.encode("utf-8")).hexdigest()
 
-    def chat(self, messages, purpose="", qid="") -> LLMResult:
-        key = self._key(messages)
+    def chat(self, messages, purpose="", qid="", think=True) -> LLMResult:
+        """think=False — попросить модель отвечать без рассуждений (если провайдер это умеет)."""
+        key = self._key(messages, think)
         cpath = self.cache_dir / key[:2] / f"{key}.json"
         if self.use_cache and cpath.exists():
             data = json.loads(cpath.read_text(encoding="utf-8"))
             res = LLMResult(data["text"], True, data.get("prompt_tokens", 0), data.get("completion_tokens", 0), 0.0)
         else:
             t0 = time.time()
-            text, pt, ct = self._call(messages)
+            text, pt, ct = self._call(messages) if think else self._call(messages, think=False)
             res = LLMResult(text, False, pt, ct, time.time() - t0)
             cpath.parent.mkdir(parents=True, exist_ok=True)
             cpath.write_text(json.dumps({"text": text, "prompt_tokens": pt, "completion_tokens": ct,
@@ -119,7 +125,7 @@ class BaseLLM:
                                ensure_ascii=False) + "\n")
         return res
 
-    def _call(self, messages):
+    def _call(self, messages, think=True):
         raise NotImplementedError
 
     # --- общий HTTP с повторами ---
@@ -242,7 +248,7 @@ class GigaChat(BaseLLM):
         return {"Authorization": f"Bearer {self._get_token()}", "Content-Type": "application/json",
                 "Accept": "application/json"}
 
-    def _call(self, messages):
+    def _call(self, messages, think=True):  # think: GigaChat рассуждения не выделяет
         body = json.dumps({"model": self.model, "messages": messages, "temperature": self.temperature,
                            "max_tokens": self.max_tokens}, ensure_ascii=False).encode("utf-8")
         data = self._post(self.API_URL, self._headers(), body, ctx=self._ctx)
@@ -267,9 +273,11 @@ class OpenAICompatible(BaseLLM):
             h["Authorization"] = f"{self.scheme} {self.key}"
         return h
 
-    def _call(self, messages):
+    def _call(self, messages, think=True):
         payload = {"model": self.model, "messages": messages, "temperature": self.temperature,
                    "max_tokens": self.max_tokens, **self.extra}
+        if not think:  # Qwen3 через vLLM: рассуждения выключаются так (проверено на сервере ОНСОФТ)
+            payload["chat_template_kwargs"] = {**payload.get("chat_template_kwargs", {}), "enable_thinking": False}
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         data = self._post(f"{self.base}/chat/completions", self._headers(), body)
         u = data.get("usage", {}) or {}

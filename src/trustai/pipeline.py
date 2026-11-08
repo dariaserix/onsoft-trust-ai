@@ -13,7 +13,7 @@ from . import checks as C
 from .docs import Package
 from .llm import BaseLLM, ROOT
 from .retrieval import Retriever, render_fragments
-from .textutil import fmt_number, norm, normalize_answer_numbers, numbers
+from .textutil import fmt_number, norm, normalize_answer_numbers, numbers, stems
 
 PROMPTS = ROOT / "prompts"
 
@@ -33,6 +33,7 @@ DEFAULTS = {
     "absent_window_chars": 40000,
     "llm_critic": False,         # ИИ-критик проверяет итоговый ответ
     "max_retries": 2,            # попыток исправления после замечаний (0 = сразу «не знаю»)
+    "no_think_fallback": True,   # пустой ответ (рассуждения упёрлись в лимит) → повтор без рассуждений
 }
 
 
@@ -108,8 +109,12 @@ class Solver:
         first_answer = None
         for attempt in range(cfg["max_retries"] + 1):
             r = self.llm.chat(msgs, purpose=f"answer#{attempt}", qid=qid)
-            data = C.parse_json(r.text)
             step = {"step": f"answer#{attempt}", "raw": r.text[:1500]}
+            if not r.text.strip() and cfg.get("no_think_fallback", True):
+                # модель так долго рассуждала, что не успела ответить: просим ответить без рассуждений
+                r = self.llm.chat(msgs, purpose=f"answer#{attempt}-nothink", qid=qid, think=False)
+                step.update(raw=r.text[:1500], no_think=True)
+            data = C.parse_json(r.text)
             trace.append(step)
             if data is None:
                 issues, cand, events = [C.Issue("format", "Ответ не в формате JSON. Верни только JSON.")], None, []
@@ -207,7 +212,9 @@ class Solver:
                     unit = " руб." if "руб" in norm(question) else ""
                     old = answer
                     answer = fmt_number(round(calc_value, 2)) + unit
-                    if numbers(old) and not any(abs(x - calc_value) < 0.01 for x in numbers(old)):
+                    # «поймано» — только если модель сама назвала другой результат (а не просто записала формулу)
+                    own = [x for x in numbers(old) if not any(abs(x - y) < 0.01 for y in C.calc_operands(expr))]
+                    if own and not any(abs(x - calc_value) < 0.01 for x in own):
                         events.append({"critic": "calc", "caught": True,
                                        "message": f"Модель посчитала «{old}», код по её же выражению {expr} получил {answer}."})
             elif C.is_calc(question) and C.check_numbers(answer, active):
@@ -241,6 +248,7 @@ class Solver:
 
     def pick_main(self, mentions, answer):
         ans = numbers(answer)
+        ans_words = set(stems(answer))
 
         def score(m):
             sc = 0
@@ -248,6 +256,9 @@ class Solver:
                 sc += 2
             if ans and any(any(abs(a - x) < 0.01 for x in numbers(m.evidence)) for a in ans):
                 sc += 3
+            # при равенстве — цитата, которая по словам ближе всего к ответу
+            if ans_words:
+                sc += len(ans_words & set(stems(m.evidence or m.quote))) / len(ans_words)
             return sc
         return sorted(mentions, key=score, reverse=True)[0]
 
