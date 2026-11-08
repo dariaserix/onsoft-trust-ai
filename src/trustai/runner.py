@@ -1,10 +1,12 @@
 """Прогон набора вопросов, запись answers.csv, журнала и статистики, замер оценщиком."""
 import csv
 import json
+import os
 import re
 import subprocess
 import sys
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 from .docs import load_package
@@ -46,37 +48,66 @@ def run_set(llm: BaseLLM, cfg: dict, data_dir, out_dir, only=None, limit=None, p
     if limit:
         questions = questions[:int(limit)]
     solver = Solver(llm, cfg)
-    packages, rows = {}, []
+    packages = {}
     stats0 = dict(llm.stats)
     t0 = time.time()
+    for q in questions:  # документы читаем заранее, по одному разу на закупку
+        pname = q["package"]
+        if pname in packages:
+            continue
+        try:
+            packages[pname] = load_package(data_dir / "packages" / pname)
+            if packages[pname].warnings:
+                print(f"  [{pname}] предупреждения: {'; '.join(packages[pname].warnings)}")
+            solver.retriever(packages[pname])
+        except Exception as e:  # закупка не читается: на все её вопросы «не знаю»
+            print(f"  [{pname}] не удалось прочитать: {e}")
+            packages[pname] = None
+
+    def work(q):
+        pkg = packages[q["package"]]
+        if pkg is None:
+            from .pipeline import Result
+            return Result(q["id"], "не знаю", trace=[{"step": "unreadable", "message": "закупка не читается"}])
+        try:
+            return solver.solve(q["id"], q["question"], pkg)
+        except Exception as e:  # ошибка сети/модели не должна ронять весь прогон
+            from .pipeline import Result
+            print(f"  {q['id']}: ошибка {e}")
+            return Result(q["id"], "не знаю", trace=[{"step": "error", "message": str(e)[:500]}])
+
+    # Ключ ОНСОФТ разрешает 2 параллельных запроса; LLM_WORKERS=1 — строго по очереди.
+    workers = max(1, int(os.environ.get("LLM_WORKERS", "2")))
+    results = [None] * len(questions)
+    todo = list(range(len(questions)))
+    # Сбой сети ≠ «не знаю по документам»: такие вопросы переспрашиваем после паузы.
+    # Уже полученные ответы модели берутся из кэша, поэтому повтор ничего не меняет в честности замера.
+    for rnd in range(1 + int(os.environ.get("NET_RETRY_ROUNDS", "3"))):
+        if rnd:
+            pause = 30 * rnd
+            print(f"  Сбой связи с моделью на {len(todo)} вопросах. Повтор через {pause} с (круг {rnd})...", flush=True)
+            time.sleep(pause)
+        with ThreadPoolExecutor(max_workers=workers) as ex:
+            futs = {ex.submit(work, questions[i]): i for i in todo}
+            done = 0
+            for f in as_completed(futs):
+                i = futs[f]
+                results[i] = f.result()
+                done += 1
+                if progress:
+                    print(f"[{done}/{len(futs)}] {questions[i]['id']}: {results[i].status} {results[i].answer[:60]}",
+                          flush=True)
+        todo = [i for i in todo if any(st.get("step") == "error" for st in results[i].trace)]
+        if not todo:
+            break
+    if todo:
+        print(f"  ВНИМАНИЕ: из-за сбоя связи {len(todo)} вопросов остались «не знаю»: "
+              + ", ".join(questions[i]["id"] for i in todo))
+    rows = [r.row() for r in results]
     with (out_dir / "trace.jsonl").open("w", encoding="utf-8") as tf:
-        for i, q in enumerate(questions, 1):
-            pname = q["package"]
-            if pname not in packages:
-                ppath = data_dir / "packages" / pname
-                try:
-                    packages[pname] = load_package(ppath)
-                    if packages[pname].warnings:
-                        print(f"  [{pname}] предупреждения: {'; '.join(packages[pname].warnings)}")
-                except Exception as e:  # закупка не читается: на все её вопросы «не знаю»
-                    print(f"  [{pname}] не удалось прочитать: {e}")
-                    packages[pname] = None
-            pkg = packages[pname]
-            if pkg is None:
-                res_row = {"id": q["id"], "status": "не знаю", "answer": "", "quote": "", "file": ""}
-                rows.append(res_row)
-                continue
-            try:
-                res = solver.solve(q["id"], q["question"], pkg)
-            except Exception as e:  # ошибка сети/модели не должна ронять весь прогон
-                from .pipeline import Result
-                res = Result(q["id"], "не знаю", trace=[{"step": "error", "message": str(e)[:500]}])
-                print(f"  {q['id']}: ошибка {e}")
-            rows.append(res.row())
+        for q, res in zip(questions, results):
             tf.write(json.dumps({"id": q["id"], "question": q["question"], **res.row(), "trace": res.trace},
                                 ensure_ascii=False) + "\n")
-            if progress:
-                print(f"[{i}/{len(questions)}] {q['id']}: {res.status} {res.answer[:60]}")
     write_answers(rows, out_dir / "answers.csv")
     st = {k: llm.stats[k] - stats0.get(k, 0) for k in llm.stats}
     st.update({"questions": len(questions), "wall_seconds": round(time.time() - t0, 1), "model": llm.name,

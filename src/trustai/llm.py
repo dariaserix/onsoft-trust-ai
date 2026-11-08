@@ -13,6 +13,7 @@ import hashlib
 import json
 import os
 import ssl
+import threading
 import time
 import uuid
 import urllib.error
@@ -76,6 +77,7 @@ class BaseLLM:
         self.timeout = timeout
         self.use_cache = use_cache
         self.stats = {"calls": 0, "cached": 0, "prompt_tokens": 0, "completion_tokens": 0, "seconds": 0.0}
+        self._lock = threading.Lock()  # запросы могут идти в 2 потока (лимит ключа ОНСОФТ)
 
     @property
     def name(self):
@@ -99,6 +101,11 @@ class BaseLLM:
             cpath.parent.mkdir(parents=True, exist_ok=True)
             cpath.write_text(json.dumps({"text": text, "prompt_tokens": pt, "completion_tokens": ct,
                                          "model": self.name}, ensure_ascii=False), encoding="utf-8")
+        with self._lock:
+            self._account(res, purpose, qid)
+        return res
+
+    def _account(self, res, purpose, qid):
         self.stats["calls"] += 1
         self.stats["cached"] += int(res.cached)
         self.stats["prompt_tokens"] += res.prompt_tokens
@@ -119,7 +126,7 @@ class BaseLLM:
     def _post(self, url, headers, body: bytes, ctx=None):
         delay = 2.0
         last = None
-        for attempt in range(6):
+        for attempt in range(4):  # дальше — повтор вопроса целиком (runner.py)
             req = urllib.request.Request(url, data=body, headers=headers, method="POST")
             try:
                 with urllib.request.urlopen(req, timeout=self.timeout, context=ctx) as r:
