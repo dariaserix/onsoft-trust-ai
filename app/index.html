@@ -309,8 +309,13 @@ $("go").onclick = async () => {
       <section class="card appear" aria-labelledby="trace-h"><h2 id="trace-h">Как система проверяла ответ</h2>${renderTrace(d.trace)}</section>`;
     typoTree($("out"));
   } catch (e) {
-    $("out").innerHTML = `<section class="card error">${svg("alert")}<div><b>Не получилось получить ответ</b>
-      <span>${esc(e.message)}. Проверьте интернет и повторите вопрос — если сервер модели перегружен, система подождёт и повторит.</span></div></section>`;
+    // TypeError от fetch = страница не достучалась до демо-сервера на этом компьютере (окно app.bat закрыто)
+    const local = e instanceof TypeError;
+    $("out").innerHTML = local
+      ? `<section class="card error">${svg("alert")}<div><b>Демо-сервер не запущен</b>
+        <span>Страница открыта, но программа, которая отвечает на вопросы, выключена. Запустите app.bat в папке проекта, не закрывайте его окно и обновите страницу.</span></div></section>`
+      : `<section class="card error">${svg("alert")}<div><b>Не получилось получить ответ</b>
+        <span>${esc(e.message)}. Скорее всего, сервер модели ОНСОФТ перегружен или нет интернета. Проверьте интернет и повторите вопрос.</span></div></section>`;
     typoTree($("out"));
   } finally { $("go").disabled = false; $("go").textContent = "Спросить"; }
 };
