@@ -105,6 +105,8 @@
 
 ### Контрольный набор в день защиты
 
+Режим — с рассуждениями (как в `.env.example`). При 2 потоках 100 вопросов ≈ 15–20 минут.
+
 1. Положить папку `packages/` и `questions.csv` в `data/control/`.
 2. `run.bat solve --data data/control`
 3. Сдать `results/control/answers.csv`.
