@@ -70,7 +70,13 @@ class H(BaseHTTPRequestHandler):
             return self._send(404, "{}")
         try:
             req = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))).decode("utf-8"))
-            ds, pkg_name, q = req["dataset"], req["package"], req["question"].strip()
+            ds, pkg_name, q = str(req["dataset"]), str(req["package"]), str(req["question"]).strip()
+            # Только наборы и закупки из папки data/: имя из запроса не может указать на другие папки компьютера
+            known = datasets()
+            if ds not in known or pkg_name not in known[ds]["packages"]:
+                return self._send(400, json.dumps({"error": "Неизвестный набор или закупка"}, ensure_ascii=False))
+            if not q or len(q) > 1000:
+                return self._send(400, json.dumps({"error": "Вопрос пустой или длиннее 1000 символов"}, ensure_ascii=False))
             pkg = load_package(ROOT / "data" / ds / "packages" / pkg_name)
             with LOCK:
                 s = solver()

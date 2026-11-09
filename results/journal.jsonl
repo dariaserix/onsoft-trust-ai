@@ -16516,3 +16516,4 @@
 {"ts": "2026-11-09 15:07:22", "qid": "P06-11", "purpose": "baseline", "model": "gigachat:GigaChat-2-Max", "cached": false, "prompt_tokens": 25, "completion_tokens": 49, "seconds": 1.41}
 {"ts": "2026-11-09 15:07:23", "qid": "P06-12", "purpose": "baseline", "model": "gigachat:GigaChat-2-Max", "cached": false, "prompt_tokens": 108, "completion_tokens": 22, "seconds": 0.73}
 {"ts": "2026-11-09 15:07:24", "qid": "P06-13", "purpose": "baseline", "model": "gigachat:GigaChat-2-Max", "cached": false, "prompt_tokens": 17, "completion_tokens": 22, "seconds": 1.76}
+{"ts": "2026-11-09 15:29:06", "qid": "ASK", "purpose": "answer#0", "model": "openai:qwen3-6-practice", "cached": true, "prompt_tokens": 1604, "completion_tokens": 320, "seconds": 0.0}
