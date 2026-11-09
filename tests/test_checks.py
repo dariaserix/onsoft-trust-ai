@@ -127,6 +127,13 @@ class TestChecks(unittest.TestCase):
         m = C.Mention(sid="", file="f", quote="", value="", evidence="3 | Приёмка | Документ о приёмке")
         self.assertEqual(C.check_numbers("3", [m]), [])
 
+    def test_excluded_is_negation_but_exclusively_is_not(self):
+        """«Пункт … исключён» — требования нет; «исключительно СМП» и «за исключением случаев» — не отрицание."""
+        self.assertTrue(C.has_negation("Пункт 3.4 (дополнительные требования к опыту участника) исключён"))
+        self.assertTrue(C.has_negation("требование исключено"))
+        self.assertFalse(C.has_negation("участие принимают исключительно субъекты малого предпринимательства"))
+        self.assertFalse(C.has_negation("не допускается, за исключением случаев, предусмотренных законом"))
+
     def test_discrepancy_detected(self):
         r = solve("P01", "Какой срок выполнения работ, в календарных днях?",
                   [{"status": "ответ", "answer": "60", "mentions": [
