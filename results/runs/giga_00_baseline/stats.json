@@ -1,0 +1,13 @@
+{
+  "calls": 71,
+  "cached": 0,
+  "prompt_tokens": 132833,
+  "completion_tokens": 4196,
+  "seconds": 453.64467883110046,
+  "model_seconds": 453.64467883110046,
+  "questions": 71,
+  "wall_seconds": 454.1,
+  "model": "gigachat:GigaChat-2-Max",
+  "config": "00_baseline",
+  "started": "2026-11-09 14:59:50"
+}
